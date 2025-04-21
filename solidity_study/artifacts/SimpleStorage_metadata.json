@@ -60,10 +60,11 @@
 	},
 	"sources": {
 		"solidity_study/test1.sol": {
-			"keccak256": "0xc198924fbcbb851ae48da3015b75abacad4d7806bed042ea7e6585c60ccff9fd",
+			"keccak256": "0xed023b69cce261cfad75321a2233973dfae701f8d74c18dbf25fdd0089e85ca2",
+			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://6e0f57006b9464cf4cd9a231a3fd35456a52289f3ff8d1d456e386f1b8790490",
-				"dweb:/ipfs/QmbXRfKS4GnMCqU5yL91Ysq15j8KejFU3LEhmpPVPYYkuN"
+				"bzz-raw://f69312d4473e86dd63fd6b96940879d3930dd6ec31708923f2e9f8c0b285661a",
+				"dweb:/ipfs/QmexYDeEL2jnCR92EeepqgJsFFszcX2q8GNJNERBUtNWk4"
 			]
 		}
 	},

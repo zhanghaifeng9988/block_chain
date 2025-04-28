@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.26;//源代码使用Solidity版本
+pragma solidity ^0.8.26;//源代码使用Solidity版本，但不包括 0.9.0 或更高版本
 //关键字 pragma:编译指令,是告知编译器如何处理源代码的指令的
 
 

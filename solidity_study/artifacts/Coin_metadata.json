@@ -132,11 +132,11 @@
 	},
 	"sources": {
 		"solidity_study/subcurrency.sol": {
-			"keccak256": "0x22b064175ea9d20d0378fd8a3e08caffec9d5a8d7d8cbc14ddf2e499af88d3a0",
-			"license": "UNLICENSED",
+			"keccak256": "0x22ee10522830a8083534dc54455300c31e9468530ee58a44d916838ecd9d7ab3",
+			"license": "MIT",
 			"urls": [
-				"bzz-raw://6af6ed8c746c1fa504822ac3490b88736e61eb5fcb28b2452649dafc34d069ff",
-				"dweb:/ipfs/QmZF5uboDDB7GZZzdz26c8v5ts2GTdbiMBffNSHpdU3pVv"
+				"bzz-raw://4c6dce68c308d06eac1d4a00b7697981ffaf26ff03eab3a6fabe8cdcd94df932",
+				"dweb:/ipfs/QmS2oTdxuXjSLe4LaR4wzQWqYTsi2Tj2EBo5p2Vk4BJsdE"
 			]
 		}
 	},

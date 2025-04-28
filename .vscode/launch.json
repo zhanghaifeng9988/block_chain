@@ -1,0 +1,23 @@
+{
+  // 使用 IntelliSense 了解相关属性。 
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+      
+    {
+        "type": "node-terminal",
+        "request": "launch",
+        "name": "study_way",
+        //"command": "ts-node hello-node/src/ts/${fileBasename}",
+        "command": "ts-node  study_way/src/${fileBasename}",
+    },
+    {
+        "type": "node-terminal",
+        "request": "launch",
+        "name": "study_way",
+        "command": "node  study_way/src/${fileBasename}",
+        //"command": "node hello-node/src/ts/${fileBasename}",
+    }
+]
+}

@@ -27,7 +27,7 @@ async function signData(privateKey: string, data: string) {
     signer.update(data);
     signer.end();
     const signature = signer.sign(privateKey, 'hex');
-    return signature;
+    return signature;//返回签名
 }
 
 // 用公钥验证签名

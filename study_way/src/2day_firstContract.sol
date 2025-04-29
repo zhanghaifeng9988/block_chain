@@ -1,5 +1,6 @@
 pragma  solidity ^0.8.9;
 // SPDX-License-Identifier: MIT
+// 第1个合约
 
 contract Counter {
     // 状态变量 counter

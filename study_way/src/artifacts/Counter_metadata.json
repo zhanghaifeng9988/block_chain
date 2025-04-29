@@ -78,11 +78,11 @@
 	},
 	"sources": {
 		"study_way/src/2day_firstContract.sol": {
-			"keccak256": "0x604eb06da79c6a7963838eb5c92b204eec1c95660304d032c3d9d8f5a4b6eac5",
+			"keccak256": "0xc60489fe1368a9109805dbf09c46d125dd0476ab1af9be0b0f7e0e0d3bd7582f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d4a8bcc5fb6eaf9b43aa144f6beb3b0e6d287e48bc29a81f5baaf8466c4138d5",
-				"dweb:/ipfs/QmbnuspEztaVQrH2qAjPTxSGnbcniP36uYsR2ayhT1uAfn"
+				"bzz-raw://a769fd60c3a4989e033496412d167e28428abb12db9335f924dab56da855d521",
+				"dweb:/ipfs/QmVF7F3HgzvsUupKXvaix1PaL8zu7mT8hZuzJSNX1rJZex"
 			]
 		}
 	},

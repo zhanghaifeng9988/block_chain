@@ -18,7 +18,7 @@ contract Coin {
     // 轻客户端可以通过事件针对变化作出高效的反应
     event Sent(address from, address to, uint amount);
 
-    // 这是构造函数，只有当合约创建时运行
+    // 这是构造函数，只有当合约创建时运行，它只会被执行一次。部署完成的状态，字节码中不包含构造函数代码
     constructor()  {
         //msg.sender表示当前合约的创建者的地址。在构造函数中，minter 存储创建合约的人的地址。
         minter = msg.sender;
@@ -1584,12 +1584,12 @@ contract OwnedToken {
         // 这也适用于函数，特别是在构造函数中，你只能像这样（“内部地”）调用它们，
         // 因为合约本身还不存在。
         owner = msg.sender;//赋值为调用合约的地址
-        // 从 `address` 到 `TokenCreator` ，是做显式的类型转换
-        // 并且假定调用合约的类型是 TokenCreator，没有真正的方法来检查这一点。
+        // 将调用合约的地址（msg.sender）显式转换为 TokenCreator 类型 ，是做显式的类型转换。
         creator = TokenCreator(msg.sender);
         name = _name;
     }
 
+    //更改 OwnedToken 的name 状态变量
     function changeName(bytes32 newName) public {
         // 只有 creator （即创建当前合约的合约）能够更改名称 —— 因为合约是隐式转换为地址的，
         // 所以这里的比较是可行的。
@@ -1597,6 +1597,7 @@ contract OwnedToken {
             name = newName;
     }
 
+   // 转移 OwnedToken 的所有权
     function transfer(address newOwner) public {
         // 只有当前所有者才能发送 token。
         if (msg.sender != owner) return;
@@ -1613,7 +1614,7 @@ contract TokenCreator {
        public
        returns (OwnedToken tokenAddress)
     {
-        // 创建一个新的 Token 合约并且返回它的地址。
+        // 创建一个新的 OwnedToken 合约并且返回它的地址。
         // 从 JavaScript 方面来说，返回类型是简单的 `address` 类型，因为
         // 这是在 ABI 中可用的最接近的类型。
         return new OwnedToken(name);
@@ -1630,7 +1631,229 @@ contract TokenCreator {
         returns (bool ok)
     {
         // 检查一些任意的情况。
+        // msg.sender是 OwnedToken 合约的地址
         address tokenAddress = msg.sender;
         return (keccak256(newOwner) & 0xff) == (bytes20(tokenAddress) & 0xff);
+    }
+}
+
+
+# 可见性和 getter 函数
+
+## 可见性
+由于 Solidity 有两种函数调用（内部调用不会产生实际的 EVM 调用或称为“消息调用”，而外部调用则会产生一个 EVM 调用）， 函数和状态变量有四种可见性类型。 
+
+1. 函数可以指定为：
+- external ：
+外部函数作为合约接口的一部分，意味着我们可以从其他合约和交易中调用。 一个外部函数 f 不能从内部调用（即 f 不起作用，但 this.f() 可以）。 当收到大量数据的时候，外部函数有时候会更有效率。
+- public ：
+public 函数是合约接口的一部分，可以在内部或通过消息调用。对于公共状态变量， 会自动生成一个 getter 函数（见下面）。
+- internal ：
+这些函数和状态变量只能是内部访问（即从当前合约内部或从它派生的合约访问），不使用 this 调用。
+- private ：
+private 函数和状态变量仅在当前定义它们的合约中使用，并且不能被派生合约使用。
+
+contract C {
+    function f(uint a) private pure returns (uint b) { return a + 1; }
+    function setData(uint a) internal { data = a; }
+    uint public data;
+}
+
+在下面的例子中，D 可以调用 c.getData（） 来获取状态存储中 data 的值，但不能调用 f 。 合约 E 继承自 C ，因此可以调用 compute。
+
+// 下面代码，会存在错误，已经标识出来了
+
+contract C {
+    uint private data;
+
+    function f(uint a) private returns(uint b) { return a + 1; }
+    function setData(uint a) public { data = a; }
+    function getData() public  returns(uint) { return data; }
+    function compute(uint a, uint b) internal returns (uint) { return a+b; }
+}
+
+contract D {
+    function readData() public {
+        C c = new C();//创建合约对象实例
+        uint local = c.f(7); // 错误：成员 `f` 不可见
+        c.setData(3);
+        local = c.getData();
+        local = c.compute(3, 5); // 错误：成员 `compute` 不可见
+    }
+}
+
+contract E is C {
+    function g() public {
+        C c = new C();
+        uint val = compute(3, 5); // 访问内部成员（从继承合约访问父合约成员）
+    }
+}
+
+
+## getter 函数
+1. 编译器自动**为所有 public 状态变量**创建 getter 函数。
+对于下面给出的合约，编译器会生成一个名为 data 的函数， 该函数不会接收任何参数并返回一个 uint ，即状态变量 data 的值。可以在声明时完成状态变量的初始化。
+
+contract C {
+    uint public data = 42;
+}
+
+contract Caller {
+    C c = new C();
+    function f() public {
+        uint local = c.data();
+    }
+}
+
+2. getter 函数具有外部可见性。
+如果在内部访问 getter（即没有 this. ），它被认为一个状态变量。 如果它是外部访问的（即用 this. ），它被认为为一个函数。
+
+contract C {
+    uint public data;
+    function x() public {
+        data = 3; // 内部访问
+        uint val = this.data(); // 外部访问
+    }
+}
+
+## Constant 状态变量
+1. 状态变量可以被声明为 constant。在这种情况下，只能使用那些在编译时有确定值的表达式来给它们赋值。
+2. 任何通过访问 storage，区块链数据（例如 now, this.balance 或者 block.number）或执行数据（ msg.gas ） 或对外部合约的调用，来给它们**赋值都是不允许的**。  
+3. 内建（built-in）函数 keccak256，sha256，ripemd160，ecrecover，addmod 和 mulmod 是允许的
+
+**4.**不是所有类型的状态变量都支持用 constant 来修饰，**当前支持的仅有值类型和字符串。**
+
+
+# 函数
+## view 函数
+可以将函数声明为 view 类型，这种情况下要保证不修改状态。
+
+**1.下面的语句被认为是修改状态：**
+- 修改状态变量。
+- 产生事件。
+- 创建其它合约。
+- 使用 selfdestruct。
+- 通过调用发送以太币。
+- 调用任何没有标记为 view 或者 pure 的函数。
+- 使用低级调用。
+- 使用包含特定操作码的内联汇编。
+contract C {
+    function f(uint a, uint b) public view returns (uint) {
+        return a * (b + 42) + now;
+    }
+}
+
+
+# pure 函数
+函数可以声明为 pure ，在这种情况下，承诺不读取或修改状态。
+
+除了上面解释的状态修改语句列表之外，以下被认为是从状态中读取：
+
+读取状态变量。
+访问 this.balance 或者 <address>.balance。
+访问 block，tx， msg 中任意成员 （除 msg.sig 和 msg.data 之外）。
+调用任何未标记为 pure 的函数。
+使用包含某些操作码的内联汇编。
+
+contract C {
+    function f(uint a, uint b) public pure returns (uint) {
+        return a * (b + 42);
+    }
+}
+
+
+# receive 和 fallback
+## 接受以太币函数receive
+1. 一个合约最多可以有一个 receive 函数，声明为 receive() external payable { ... } （不带 function 关键字）。 该函数不能有参数，不能返回任何内容，必须具有 external 可见性和 payable 状态可变性。 它可以是虚拟的，可以重写，并且可以有 修改器modifier。
+2. 接收函数在调用合约时执行，且没有提供任何 calldata。
+3. 这是执行普通以太转账时调用的函数（例如通过 .send() 或 .transfer()）。
+4. 如果不存在这样的函数，但存在可支付的 回退函数，则在普通以太转账时将调用回退函数。 
+5. 如果**既没有接收以太函数**，**也没有可支付的回退函数**，合约将无法通过调用不可支付函数来接收以太，将**抛出异常**。
+6. 在最坏的情况下，receive 函数只有 2300 gas 可用（例如当使用 send 或 transfer 时），几乎没有空间执行其他操作，除了基本的日志记录。
+7. 以下操作将消耗超过 2300 gas 补贴：
+- 写入存储
+- 部署合约
+- 调用消耗大量 gas 的外部函数
+- 发送以太币
+8. **warning1**：
+当以太币直接发送到合约（没有函数调用，即发送者使用 send 或 transfer），但接收合约**未定义接收以太币函数或可支付回退函数时**，将抛出异常，退回以太币（在 Solidity v0.4.0 之前是不同的）。
+9. **warning2**：
+没有接收以太币函数的合约可以作为 coinbase 交易 （即 矿工区块奖励）的接收者或作为 selfdestruct 的目标接收以太币。
+合约无法对这种以太转账做出反应，因此也无法拒绝它们。这是 EVM 的设计选择，Solidity 无法规避。
+这也意味着 address(this).balance 可能高于合约中实现的一些手动会计的总和（即在接收以太币函数中更新计数器）。
+10.**举例：**
+contract Sink {
+    event Received(address, uint);
+    //接收以太币的函数,当合约收到以太币时，这个函数会被自动调用。
+    receive() external payable {//external关键字表示这个函数只能从合约外部调用。
+        emit Received(msg.sender, msg.value);
+    }
+}
+
+## 回退函数fallback
+1. **一个合约最多可以有一个 fallback 函数**，声明为 fallback () external [payable] 或 fallback (bytes calldata input) external [payable] returns (bytes memory output) （两者均不带 function 关键字）。
+2. 该函数必须具有 external 可见性。回退函数可以是虚拟的，可以重写，并且可以有修改器。
+3. 如果没有其他函数与给定的函数签名匹配，或者根本没有提供数据且没有 接收以太函数，则在调用合约时执行回退函数。 
+4. 回退函数始终接收数据，但为了接收以太币，它必须标记为 payable。
+5. 在最坏的情况下，如果可支付的回退函数也用作接收函数，则它只能依赖于 2300 gas 可用.
+6. 像任何函数一样，只要传递给它的 gas 足够，回退函数可以执行复杂的操作。
+7.  **warning1**：
+如果没有 接收以太币函数，则对于普通以太币转账，也会执行 payable 回退函数。
+**建议**：如果你定义可支付回退函数，也始终定义接收以太币函数，以区分以太币转账和接口混淆。
+8. **备注**：
+如果想解码输入数据，可以检查前四个字节以获取函数选择器，然后可以使用 abi.decode 结合数组切片语法来解码 ABI 编码的数据： (c, d) = abi.decode(input[4:], (uint256, uint256)); 请注意，这应仅作为最后的手段使用，应该使用适当的函数。
+
+10.**举例：**
+contract Test {
+    uint x;
+    // 此函数会被调用以处理发送到此合约的所有消息（没有其他函数）。
+    // 向此合约发送以太币将导致异常，因为回退函数没有 `payable`修改器。
+    fallback() external { x = 1; }
+}
+
+contract TestPayable {
+    uint x;
+    uint y;
+    // 此函数会被调用以处理发送到此合约的所有消息，除了普通的以太币转账（除了接收函数外没有其他函数）。
+    // 任何带有非空 calldata 的调用都会执行回退函数（即使在调用时发送了以太币）。
+    fallback() external payable { x = 1; y = msg.value; }
+
+    // 此函数会被调用以处理普通的以太币转账
+    // 对于每个带有空 calldata 的调用。
+    receive() external payable { x = 2; y = msg.value; }
+}
+
+contract Caller {
+    function callTest(Test test) public returns (bool) {
+      //address(test)：将test合约的地址转换为address类型。
+      //使用call方法调用test合约上的nonExistingFunction()函数。
+        (bool success,) = address(test).call(abi.encodeWithSignature("nonExistingFunction()"));
+        require(success);
+        //  结果是 test.x 变成 == 1。
+
+        // address(test) 不允许直接调用 ``send``，因为 ``test`` 没有 payable 回退函数。
+        // 必须将其转换为 ``address payable`` 类型才能允许调用 ``send``。
+        address payable testPayable = payable(address(test));
+
+        // 如果有人向该合约发送以太币，转账将失败，即这里返回 false。
+        return testPayable.send(2 ether);
+    }
+
+    function callTestPayable(TestPayable test) public returns (bool) {
+        (bool success,) = address(test).call(abi.encodeWithSignature("nonExistingFunction()"));
+        require(success);
+        // 结果是 test.x 变为 == 1，test.y 变为 0。
+        (success,) = address(test).call{value: 1}(abi.encodeWithSignature("nonExistingFunction()"));
+        require(success);
+        // 结果是 test.x 变为 == 1，test.y 变为 1。
+
+        // 如果有人向该合约发送以太币，TestPayable 中的接收函数将被调用。
+        // 由于该函数写入存储，它消耗的 gas 比简单的 ``send`` 或 ``transfer`` 更多。
+        // 因此，我们必须使用低级调用。
+        (success,) = address(test).call{value: 2 ether}("");
+        require(success);
+        // 结果是 test.x 变为 == 2，test.y 变为 2 ether。
+
+        return true;
     }
 }

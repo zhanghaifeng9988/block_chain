@@ -4,7 +4,7 @@ pragma  solidity ^0.8.9;
 
 contract Counter {
     // 状态变量 counter
-    uint256 public counter;
+    uint256 public  counter;
 
     // 构造函数，初始化 counter 的值为 0
     constructor() {

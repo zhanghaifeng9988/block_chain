@@ -68,6 +68,10 @@
 				"type": "event"
 			},
 			{
+				"stateMutability": "payable",
+				"type": "fallback"
+			},
+			{
 				"inputs": [],
 				"name": "admin",
 				"outputs": [
@@ -219,6 +223,10 @@
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
 			}
 		],
 		"devdoc": {
@@ -249,11 +257,11 @@
 	},
 	"sources": {
 		"study_way/src/3day_bankConstract.sol": {
-			"keccak256": "0xc1687f645db4534ed7f52c596cc184809ae9ad62af90881e5fb3aa48f1e67c4e",
+			"keccak256": "0xe1901e8b48a71e3fcdedd4421af44fa333758d8575ddd77096813d5d3e215017",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8d56a3aaa343b9641150b518562fb57c15c8a9707a817a43e6daac899b658228",
-				"dweb:/ipfs/Qmdt4dR3nEMMKrJbcMwjUtGVt9HCHKTcq6MRVsFYMzZKMj"
+				"bzz-raw://85dc73b4339ac408b6728e46e9970ed0ac16938b34c11198b0464fd506348aeb",
+				"dweb:/ipfs/QmVsfnEZyQmRjeVnBbMfXsNBFz5pv8GzErtffU7YxmoFQG"
 			]
 		}
 	},

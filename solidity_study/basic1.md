@@ -1258,18 +1258,7 @@ bytes4(keccak256("setMessage(string)")) = 0x368b8772
 
 
 
-# 错误处理
 
-assert(bool condition):
-如果条件不满足，则使当前交易没有效果 — 用于检查内部错误。
-require(bool condition):
-如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误。
-require(bool condition, string message):
-如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误，可以同时提供一个错误消息。
-revert():
-终止运行并撤销状态更改。
-revert(string reason):
-终止运行并撤销状态更改，可以同时提供一个解释性的字符串。
 
 
 # 数学和密码学函数
@@ -1535,6 +1524,20 @@ contract C {
 # 错误处理
 Solidity 使用**状态恢复异常**来**处理错误**。
 这种异常将撤消对当前调用（及其所有子调用）中的状态所做的所有更改，并且还向调用者标记错误。
+
+## 0.概述
+
+assert(bool condition):
+如果条件不满足，则使当前交易没有效果 — 用于检查内部错误。
+require(bool condition):
+如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误。
+require(bool condition, string message):
+如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误，可以同时提供一个错误消息。
+revert():
+终止运行并撤销状态更改。
+revert(string reason):
+终止运行并撤销状态更改，可以同时提供一个解释性的字符串。
+
 ## 1. 函数 assert 和 require 可用于检查条件并在条件不满足时抛出异常。
 1. assert 函数只能用于测试内部错误，并检查非变量。
 2. require 函数用于确认条件有效性，例如输入变量，或合约状态变量是否满足条件，或验证外部合约调用返回的值。
@@ -1584,7 +1587,7 @@ contract Sharer {
 因为我们想保留交易的原子性，所以最安全的做法是回退所有更改并使整个交易（或至少是调用）不产生效果。 
 **请注意，** assert 式异常消耗了所有可用的调用 gas ，而从 Metropolis 版本起 require 式的异常不会消耗任何 gas。
 
-### 举例
+### 举例1
 下边的例子展示了如何在 revert 和 require 中使用错误字符串：
 contract VendingMachine {
     function buy(uint amount) payable {
@@ -1605,6 +1608,47 @@ contract VendingMachine {
 0x0000000000000000000000000000000000000000000000000000000000000020 // 数据的偏移量（32）
 0x000000000000000000000000000000000000000000000000000000000000001a // 字符串长度（26）
 0x4e6f7420656e6f7567682045746865722070726f76696465642e000000000000 // 字符串数据（"Not enough Ether provided." 的 ASCII 编码，26字节）
+
+
+### 举例2
+pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+
+contract Foo {
+    function myFunc(uint x) public pure returns (uint) {
+        require(x != 0, "if equal 0, require failed");
+        assert(x <= 100); // 如果 x > 100，触发 Panic 错误
+        return x + 1;
+    }
+}
+
+contract TryCatch {
+    Foo public foo;
+    uint public y;
+    
+    // 定义错误事件
+    event ErrorOccurred(string errorType, string reason, bytes lowLevelData);
+    
+    constructor() {
+        foo = new Foo();
+    }
+
+    function tryCatchExternalCall(uint i) public {
+        try foo.myFunc(i) returns (uint result) {
+            y = result; // 成功时更新状态
+        } catch Error(string memory reason) {
+            // 记录require/revert错误
+            emit ErrorOccurred("Require/Revert Error", reason, "");
+            revert(reason); // 仍然回滚交易并返回错误信息
+        } catch (bytes memory lowLevelData) {
+            // 记录assert/panic错误
+            string memory errorMsg = "Low-level error occurred";
+            emit ErrorOccurred("Assert/Panic Error", errorMsg, lowLevelData);
+            revert(errorMsg); // 仍然回滚交易并返回错误信息
+        }
+    }
+}
+
 
 
 # 创建合约
@@ -1909,29 +1953,5 @@ contract Caller {
 
 
 
-# 错误处理  try-catch
-contract Foo {
-function myFunc(uint x) public pure returns (uint ) {
-require(x != 0, "require failed");
-return x + 1;
-}
-}
 
-contract trycatch {
 
-Foo public foo;
-uint public y;
-constructor() {
-foo = new Foo();
-}
-
-function tryCatchExternalCall(uint _i) public {
-
-try foo.myFunc(_i) returns (uint result) {
-y = result;
-} catch {
-..
-}
-
-}
-}

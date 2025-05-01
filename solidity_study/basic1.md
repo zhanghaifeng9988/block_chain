@@ -2035,3 +2035,62 @@ contract MyContract {
 3. 底层机制：基于 ABI 编码和 EVM 的 CALL 操作码实现跨合约调用。
 
 
+# 继承
+## 举例1
+pragma solidity ^0.8.0;
+
+// SPDX-License-Identifier: MIT
+
+//父合约
+contract A {
+    uint256 public a;
+
+    constructor() {
+        a = 1;
+    }
+}
+
+//子合约
+contract B is A {
+    uint256 public b;
+
+    constructor() {
+        b = 2;
+    }
+}
+/* 1. 子合约 B 自动获得父合约 A 的所有非私有成员（状态变量和函数）;
+2. 子合约可以扩展父合约的功能（添加新状态变量和函数）;
+3. 子合约可以重写父合约的函数（使用 override 关键字） */
+
+**说明：**
+1. 首先执行父合约 A 的构造函数，设置 a = 1
+2. 然后执行子合约 B 的构造函数，设置 b = 2
+
+
+## 举例2 super的用法
+contract A {
+    uint256 public a;
+
+    constructor() {
+        a = 1;
+    }
+}
+
+contract B is A {
+    uint256 public b;
+
+    constructor() {
+        // 使用super调用父合约构造函数
+        super; // 这会执行A的constructor()
+        b = 2;
+    }
+}
+
+**执行顺序说明**
+1. 当部署 B 合约时：
+首先自动调用 A 的构造函数（a = 1）
+  - 然后执行 B 的构造函数（b = 2）
+  - 即使不使用 super，Solidity 也会自动调用直接父合约的构造函数
+2. 使用 super 是显式调用，通常在以下情况需要：
+  - 父合约构造函数需要参数时
+  - 需要控制父合约构造函数的调用顺序时

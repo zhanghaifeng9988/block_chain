@@ -341,7 +341,7 @@ contract SimpleAuction {
 }
 
 
-## 函数修饰器
+## 函数修饰器/装饰器
 函数修饰器是一种特殊的函数，它可以修改或增强其他函数的行为。
 modifier：是一种用于**修改函数行为的工具**，它可以在函数执行之前或之后添加额外的逻辑。
 onlyBefore：是一个**函数修饰器**，它的作用是确保函数只能在某个时间点之前被调用。
@@ -384,6 +384,53 @@ contract SimpleAuction {
 onlyOwner：确保函数只能由合约的所有者调用。
 onlyAfter：确保函数只能在某个时间点之后调用。
 
+
+### 函数装饰器的替代方式：私有函数
+**举例**：
+- **装饰器版本**
+contract ModifierExample {
+    address owner;
+
+    modifier onlyOwner {
+        require(msg.sender == owner, "Not owner");
+        _;
+    }
+
+    function setOwner(address newOwner) public onlyOwner {
+        owner = newOwner;
+    }
+}
+
+- **私有函数版本**
+contract PrivateFunctionExample {
+    address owner;
+
+    // 私有函数实现权限检查
+    function _checkOwner() private view {
+        require(msg.sender == owner, "Not owner");
+    }
+
+    // 在函数中手动调用私有函数
+    function setOwner(address newOwner) public {
+        _checkOwner(); // 替代 onlyOwner 修改器
+        owner = newOwner;
+    }
+}
+
+#### **小结**
+
+1. 修改器 是 Solidity 的语法糖，适合简单的、高频的代码复用（如权限检查）。
+
+2. 私有函数 更灵活，适合复杂逻辑或需要返回值的情况。
+
+3. 两者本质上是编译时的代码展开（修改器） vs 运行时的函数调用（私有函数）。
+
+- **何时选择私有函数**？
+1. 当修改逻辑需要返回值时（修改器无法返回值）。
+
+2. 当检查逻辑较复杂，或需要在函数中间插入时。
+
+3. 当需要动态控制检查逻辑的位置（修改器只能固定在 _; 处）。
 
 ## 事件  event
 事件是能方便地调用以太坊虚拟机日志功能的接口。
@@ -1584,7 +1631,7 @@ contract OwnedToken {
         // 这也适用于函数，特别是在构造函数中，你只能像这样（“内部地”）调用它们，
         // 因为合约本身还不存在。
         owner = msg.sender;//赋值为调用合约的地址
-        // 将调用合约的地址（msg.sender）显式转换为 TokenCreator 类型 ，是做显式的类型转换。
+        // 将调用合约的地址（msg.sender）显式转换为 TokenCreator 类型 ，是做显式的**类型转换**。
         creator = TokenCreator(msg.sender);
         name = _name;
     }
@@ -1833,9 +1880,11 @@ contract Caller {
 
         // address(test) 不允许直接调用 ``send``，因为 ``test`` 没有 payable 回退函数。
         // 必须将其转换为 ``address payable`` 类型才能允许调用 ``send``。
+        //payable(address(test))	**将普通地址转为可支付地址**（address payable）, 赋值给testPayable变量。
         address payable testPayable = payable(address(test));
 
         // 如果有人向该合约发送以太币，转账将失败，即这里返回 false。
+        //fallback 没有 payable 修饰符，相当于"没开通收款功能"，所以转账被拒绝。
         return testPayable.send(2 ether);
     }
 
@@ -1856,4 +1905,33 @@ contract Caller {
 
         return true;
     }
+}
+
+
+
+# 错误处理  try-catch
+contract Foo {
+function myFunc(uint x) public pure returns (uint ) {
+require(x != 0, "require failed");
+return x + 1;
+}
+}
+
+contract trycatch {
+
+Foo public foo;
+uint public y;
+constructor() {
+foo = new Foo();
+}
+
+function tryCatchExternalCall(uint _i) public {
+
+try foo.myFunc(_i) returns (uint result) {
+y = result;
+} catch {
+..
+}
+
+}
 }

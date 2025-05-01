@@ -45,7 +45,7 @@ contract Bank {
     }
 
     // 对存款用户进行排序，将前三名推入定义的两个数组中
-    function updateTopUsers(address user, uint256 amount) internal {
+/*    function updateTopUsers(address user, uint256 amount) internal {
         // 如果存款金额最多的用户不足三个，直接将当前用户和他的存款金额推入对应数组
         if (topUsers.length < 3) {
             topUsers.push(user);
@@ -64,6 +64,49 @@ contract Bank {
         // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
         emit TopUserUpdated(user, amount);
     }
+*/
+
+    function updateTopUsers(address user, uint256 amount) internal {
+    // 检查是否已经是顶级用户,如果是，更新其金额,并排序
+    for (uint i = 0; i < topUsers.length; i++) {
+        if (topUsers[i] == user) {
+            topDeposits[i] = amount;
+            _sortTopUsers();
+            return;
+        }
+    }
+    
+    // 如果不足3个存款用户，直接添加，并排序
+    if (topUsers.length < 3) {
+        topUsers.push(user);
+        topDeposits.push(amount);
+        _sortTopUsers();
+    } 
+    // 否则，检查当前用户存款金额是否大于当前最小金额，如果是，替换最小金额，并排序
+    else if (amount > topDeposits[2]) {
+        topUsers[2] = user;
+        topDeposits[2] = amount;
+        _sortTopUsers();
+    }
+    // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
+    emit TopUserUpdated(user, amount);
+}
+
+// 辅助函数，对top3进行排序
+function _sortTopUsers() private {
+    if (topDeposits.length > 1) {          // 需要检查，避免空数组或单元素数组
+        for (uint i = 0; i < 2; i++) {    // i < 3 - 1 → i < 2
+            for (uint j = 0; j < 2 - i; j++) {  // j < 3 - i - 1 → j < 2 - i
+                if (topDeposits[j] < topDeposits[j+1]) {
+                    // 交换金额和地址（保持不变）
+                    (topDeposits[j], topDeposits[j+1]) = (topDeposits[j+1], topDeposits[j]);
+                    (topUsers[j], topUsers[j+1]) = (topUsers[j+1], topUsers[j]);
+                }
+            }
+        }
+    }
+}
+
 
     // 返回当前合约中存储的顶级用户及其对应的存款金额
     function getTopUsers() external view returns (address[] memory, uint256[] memory) {

@@ -61,6 +61,7 @@ contract Bank {
             }
         }
 
+
         // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
         emit TopUserUpdated(user, amount);
     }

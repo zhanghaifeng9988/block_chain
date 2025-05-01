@@ -69,11 +69,11 @@
 	},
 	"sources": {
 		"study_way/src/4day_bankConstractExtend.sol": {
-			"keccak256": "0xceee797d62495c2cff470ad00307642b1863c037942d6b46e5436fd1052a731c",
+			"keccak256": "0x886099f40e060c9643e907bb374fdb82ee5e5c3c3f04adc152e4d5867fdcbe2d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f7561467fe82577e7709f11ef84acca86d52cbddff43c9b8d70e943b6ea9059f",
-				"dweb:/ipfs/QmR5ZRtC4sPBtcT3pR9kx3jRgtrKDXKqnDv78peAx9Win7"
+				"bzz-raw://c5663a5ddfb2bfc8741e5a6ef7f5f89ef737b6089b25ff4b941ecaab014a149d",
+				"dweb:/ipfs/QmShWmp8i3FQ6ygts3z8wLzwFbafJSDs8rsA8eitwTFags"
 			]
 		}
 	},

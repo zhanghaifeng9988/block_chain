@@ -2094,3 +2094,28 @@ contract B is A {
 2. 使用 super 是显式调用，通常在以下情况需要：
   - 父合约构造函数需要参数时
   - 需要控制父合约构造函数的调用顺序时
+
+## 举例3 抽象合约
+**举例**
+
+pragma solidity ^0.8.0;
+
+// SPDX-License-Identifier: MIT
+
+abstract contract A {
+    uint public a;
+    function add(uint x ) public virtual;
+}
+
+contract B is A {
+    uint public b;
+    constructor() {
+        b = 2;
+    }
+
+    function  add(uint x) public override virtual {
+        b +=x;
+    }
+
+}
+

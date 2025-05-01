@@ -1,0 +1,81 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "contract IBank",
+						"name": "bank",
+						"type": "address"
+					}
+				],
+				"name": "adminWithdraw",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "owner",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"stateMutability": "payable",
+				"type": "receive"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"study_way/src/4day_bankConstractExtend.sol": "Admin"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"study_way/src/4day_bankConstractExtend.sol": {
+			"keccak256": "0x5a48af9dbdf71848022b889bff5d8d0c7f975944df05d324518d20b50c8211e8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://98692ff172a5f982af6a9e1f8fff9eaee6c81e88b1e2983ae782103afaf49b35",
+				"dweb:/ipfs/QmSKjMg7gMy2x3f1o8ZCvMuvWyBrXhfWEWKWkByh6TUYwU"
+			]
+		}
+	},
+	"version": 1
+}

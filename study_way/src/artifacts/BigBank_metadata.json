@@ -6,11 +6,6 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
-				"stateMutability": "nonpayable",
-				"type": "constructor"
-			},
-			{
 				"anonymous": false,
 				"inputs": [
 					{
@@ -201,6 +196,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "newAdmin",
+						"type": "address"
+					}
+				],
+				"name": "transferAdmin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
@@ -242,7 +250,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/4day_bankConstractExtend.sol": "Bank"
+			"study_way/src/4day_bankConstractExtend.sol": "BigBank"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},

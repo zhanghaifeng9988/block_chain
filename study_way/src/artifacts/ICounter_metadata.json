@@ -39,7 +39,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/4day_testInterface.sol": "Counter"
+			"study_way/src/4day_testInterface.sol": "ICounter"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},

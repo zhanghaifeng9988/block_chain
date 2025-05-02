@@ -31,3 +31,4 @@ MaxFeePerGas=Base Fee  +  Priority Fee
 燃烧掉 = Base Fee * gas used
 矿工收益 = MaxPriorityFeePerGas * gas used
 
+0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2

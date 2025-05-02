@@ -2203,15 +2203,16 @@ contract B is A {
 **这个合约中，采用了双重记账机制，下面我们来解释一下**：
 在你的 Bank 合约中，实际上存在两种独立的“余额”记录方式：
 
-原生链上余额 (address(this).balance)
+## 原生链上余额 (address(this).balance)
 
 由以太坊虚拟机（EVM）自动维护，表示合约地址当前持有的 真实 ETH 数量（单位：wei）。
 
-通过 payable 函数接收 ETH（如 deposit）或外部转账直接增加。
+**通过 payable 函数接收 ETH**（如 deposit）或外部转账直接增加。
 
-自定义记账余额 (balances[user])
 
-是你通过 mapping 手动定义的变量，仅用于 内部记账，记录每个用户“理论上”存入了多少 ETH。
+## 自定义记账余额 (balances[user])
+
+是你通**过 mapping 手动定义的变量**，仅用于 内部记账，记录每个用户“理论上”存入了多少 ETH。
 
 与合约实际 ETH 余额无自动关联，完全由代码逻辑控制。
 

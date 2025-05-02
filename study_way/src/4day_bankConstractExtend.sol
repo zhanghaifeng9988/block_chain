@@ -33,7 +33,7 @@ contract Bank is IBank {
     address[] public topUsers;
 
     // 定义事件，激发日志，为外部工具提供监听和解析
-    event Deposit(address indexed user, uint256 amount);
+    event Deposit(address indexed from, address indexed to, uint256 amount);
     event Withdraw(address indexed admin, uint256 amount);
     event TopUserUpdated(address indexed user, uint256 amount);
 
@@ -63,34 +63,13 @@ contract Bank is IBank {
         payable(admin).transfer(amount);
     }
 
-    // 对存款用户进行排序，将前三名推入定义的两个数组中
-    /*    function updateTopUsers(address user, uint256 amount) internal {
-        // 如果存款金额最多的用户不足三个，直接将当前用户和他的存款金额推入对应数组
-        if (topUsers.length < 3) {
-            topUsers.push(user);
-            topDeposits.push(amount);
-        } else {
-            // 将当前用户存款金额与已经存在的三个金额进行循环比对，如果大于某个旧的存在值，就替换掉
-            for (uint256 i = 0; i < 3; i++) {
-                if (amount > topDeposits[i]) {
-                    topUsers[i] = user;
-                    topDeposits[i] = amount;
-                    break;
-                }
-            }
-        }
-
-
-        // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
-        emit TopUserUpdated(user, amount);
-    }*/
-
     function updateTopUsers(address user, uint256 amount) internal {
         // 检查是否已经是顶级用户,如果是，更新其金额,并排序
         for (uint256 i = 0; i < topUsers.length; i++) {
             if (topUsers[i] == user) {
                 topDeposits[i] = amount;
                 _sortTopUsers();
+                emit TopUserUpdated(user, amount);
                 return;
             }
         }
@@ -112,6 +91,7 @@ contract Bank is IBank {
     }
 
     // 辅助函数，对top3进行排序
+    /* 该冒泡排序有问题，注释掉，有空可以研究数组越界的问题
     function _sortTopUsers() private {
         if (topDeposits.length > 1) {
             // 需要检查，避免空数组或单元素数组
@@ -133,6 +113,27 @@ contract Bank is IBank {
                 }
             }
         }
+    } */
+
+    function _sortTopUsers() private {
+        if (topDeposits.length < 2) return; // 无需排序
+
+        // 单次遍历比较并交换
+        if (topDeposits[0] < topDeposits[1]) {
+            _swap(0, 1);
+        }
+        if (topDeposits.length > 2 && topDeposits[1] < topDeposits[2]) {
+            _swap(1, 2);
+            if (topDeposits[0] < topDeposits[1]) {
+                _swap(0, 1);
+            }
+        }
+    }
+
+    // 辅助函数：交换两个索引的数据
+    function _swap(uint256 i, uint256 j) private {
+        (topDeposits[i], topDeposits[j]) = (topDeposits[j], topDeposits[i]);
+        (topUsers[i], topUsers[j]) = (topUsers[j], topUsers[i]);
     }
 
     // 返回当前合约中存储的顶级用户及其对应的存款金额
@@ -165,7 +166,7 @@ contract Bank is IBank {
         balances[user] += amount;
 
         // 触发 Deposit 事件
-        emit Deposit(user, amount);
+        emit Deposit(user, address(this), amount);
 
         // 调用 updateTopUsers 函数
         updateTopUsers(user, amount);
@@ -235,5 +236,3 @@ contract Admin {
     // Function to receive funds
     receive() external payable {}
 }
-
-

@@ -82,6 +82,7 @@ uint amount：表示发送的金额。
 1. 存储在区块链上（在交易日志中，而非合约状态中）
 2. 不可被合约直接读取（只能由外部监听）
 3. Gas成本低（比存储状态变量便宜得多）
+4. **indexed关键字**可以对参数进行索引，使得事件过滤更加高效。
 
 ## 合约中的构造函数
  constructor()  {
@@ -2012,7 +2013,7 @@ contract Counter is ICounter {
 //与合约Counter交互
 contract MyContract {
     function incrementCounter(address  _counter)  external {
-        //将传入的参数地址，转换为 ICounter 类型，并调用其 increament() 方法
+        //将传入的参数地址，转换为 ICounter 类型，并调用其 increment() 方法
         ICounter(_counter).increment();
     }
 
@@ -2022,17 +2023,50 @@ contract MyContract {
     }
 
 }
-
-
-## 关键点
-### 概述
+### 关键点
+#### 概述
 1. 使用接口类型 (ICounter) 进行类型转换，确保调用的合约有相应方法
 2. 这种模式**实现了合约间的解耦**，MyContract 可以与任何实现了 ICounter 的合约交互
 3. **调用外部合约函数会消耗 gas**（特别是会修改状态的函数）
-### 总结
+#### 总结
 1. 交互本质：MyContract 通过接口类型转换 (ICounter(_counter)) 动态调用目标合约的函数。
 2. 无需重复定义：接口已声明规范，具体实现在目标合约（如 Counter）中完成。
 3. 底层机制：基于 ABI 编码和 EVM 的 CALL 操作码实现跨合约调用。
+
+
+## 接口当作参数传递
+当你将一个接口类型（如 IBank）作为参数传递时，你实际上是在传递一个实现了该接口的合约的地址。
+下面的例子中，有接口定义和参数为接口类型的函数，**实现接口的合约没有提供，自行想象**。
+
+//传入接口类型的参数
+function adminWithdraw(IBank bank) external {
+        require(msg.sender == owner, "Only owner can perform this operation");
+        require(
+            bank.admin() == address(this),
+            "This contract is not the admin of the bank"
+        );
+        bank.withdraw();
+    }
+
+//接口
+interface IBank {
+    function deposit() external payable;
+
+    function withdraw() external;
+
+    function getTopUsers()
+        external
+        view
+        returns (address[] memory, uint256[] memory);
+
+    function getUserBalance(address user) external view returns (uint256);
+
+    function getContractBalance() external view returns (uint256);
+
+    function admin() external view returns (address);
+}
+
+
 
 
 # 继承

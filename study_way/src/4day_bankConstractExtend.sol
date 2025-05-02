@@ -1,16 +1,24 @@
 pragma solidity ^0.8.0;
+
 // SPDX-License-Identifier: MIT
 
 // IBank 接口
 interface IBank {
     function deposit() external payable;
+
     function withdraw() external;
-    function getTopUsers() external view returns (address[] memory, uint256[] memory);
+
+    function getTopUsers()
+        external
+        view
+        returns (address[] memory, uint256[] memory);
+
     function getUserBalance(address user) external view returns (uint256);
+
     function getContractBalance() external view returns (uint256);
+
     function admin() external view returns (address);
 }
-
 
 contract Bank is IBank {
     // 定义地址类型的管理员
@@ -47,7 +55,7 @@ contract Bank is IBank {
     }
 
     // 定义管理员操作账户金额的函数
-    function withdraw() external onlyAdmin  virtual{
+    function withdraw() external virtual onlyAdmin {
         uint256 amount = address(this).balance;
         require(amount > 0, "No funds to withdraw");
 
@@ -56,7 +64,7 @@ contract Bank is IBank {
     }
 
     // 对存款用户进行排序，将前三名推入定义的两个数组中
-/*    function updateTopUsers(address user, uint256 amount) internal {
+    /*    function updateTopUsers(address user, uint256 amount) internal {
         // 如果存款金额最多的用户不足三个，直接将当前用户和他的存款金额推入对应数组
         if (topUsers.length < 3) {
             topUsers.push(user);
@@ -75,52 +83,64 @@ contract Bank is IBank {
 
         // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
         emit TopUserUpdated(user, amount);
-    }
-*/
+    }*/
 
     function updateTopUsers(address user, uint256 amount) internal {
-    // 检查是否已经是顶级用户,如果是，更新其金额,并排序
-    for (uint i = 0; i < topUsers.length; i++) {
-        if (topUsers[i] == user) {
-            topDeposits[i] = amount;
-            _sortTopUsers();
-            return;
+        // 检查是否已经是顶级用户,如果是，更新其金额,并排序
+        for (uint256 i = 0; i < topUsers.length; i++) {
+            if (topUsers[i] == user) {
+                topDeposits[i] = amount;
+                _sortTopUsers();
+                return;
+            }
         }
-    }
-    
-    // 如果不足3个存款用户，直接添加，并排序
-    if (topUsers.length < 3) {
-        topUsers.push(user);
-        topDeposits.push(amount);
-        _sortTopUsers();
-    } 
-    // 否则，检查当前用户存款金额是否大于当前最小金额，如果是，替换最小金额，并排序
-    else if (amount > topDeposits[2]) {
-        topUsers[2] = user;
-        topDeposits[2] = amount;
-        _sortTopUsers();
-    }
-    // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
-    emit TopUserUpdated(user, amount);
-}
 
-// 辅助函数，对top3进行排序
-function _sortTopUsers() private {
-    if (topDeposits.length > 1) {          // 需要检查，避免空数组或单元素数组
-        for (uint i = 0; i < 2; i++) {    // i < 3 - 1 → i < 2
-            for (uint j = 0; j < 2 - i; j++) {  // j < 3 - i - 1 → j < 2 - i
-                if (topDeposits[j] < topDeposits[j+1]) {
-                    // 交换金额和地址（保持不变）
-                    (topDeposits[j], topDeposits[j+1]) = (topDeposits[j+1], topDeposits[j]);
-                    (topUsers[j], topUsers[j+1]) = (topUsers[j+1], topUsers[j]);
+        // 如果不足3个存款用户，直接添加，并排序
+        if (topUsers.length < 3) {
+            topUsers.push(user);
+            topDeposits.push(amount);
+            _sortTopUsers();
+        }
+        // 否则，检查当前用户存款金额是否大于当前最小金额，如果是，替换最小金额，并排序
+        else if (amount > topDeposits[2]) {
+            topUsers[2] = user;
+            topDeposits[2] = amount;
+            _sortTopUsers();
+        }
+        // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
+        emit TopUserUpdated(user, amount);
+    }
+
+    // 辅助函数，对top3进行排序
+    function _sortTopUsers() private {
+        if (topDeposits.length > 1) {
+            // 需要检查，避免空数组或单元素数组
+            for (uint256 i = 0; i < 2; i++) {
+                // i < 3 - 1 → i < 2
+                for (uint256 j = 0; j < 2 - i; j++) {
+                    // j < 3 - i - 1 → j < 2 - i
+                    if (topDeposits[j] < topDeposits[j + 1]) {
+                        // 交换金额和地址（保持不变）
+                        (topDeposits[j], topDeposits[j + 1]) = (
+                            topDeposits[j + 1],
+                            topDeposits[j]
+                        );
+                        (topUsers[j], topUsers[j + 1]) = (
+                            topUsers[j + 1],
+                            topUsers[j]
+                        );
+                    }
                 }
             }
         }
     }
-}
 
     // 返回当前合约中存储的顶级用户及其对应的存款金额
-    function getTopUsers() external view returns (address[] memory, uint256[] memory) {
+    function getTopUsers()
+        external
+        view
+        returns (address[] memory, uint256[] memory)
+    {
         return (topUsers, topDeposits);
     }
 
@@ -158,16 +178,18 @@ function _sortTopUsers() private {
     }
 
     // fallback 函数，用于处理调用未知函数的情况
-    fallback() external payable virtual{
+    fallback() external payable virtual {
         require(msg.value > 0, "Deposit amount must be greater than zero");
         _handleDeposit(msg.sender, msg.value);
     }
 }
 
-
 contract BigBank is Bank {
     modifier minimumDeposit() {
-        require(msg.value > 0.001 ether, "Deposit must be greater than 0.001 ether");
+        require(
+            msg.value > 0.001 ether,
+            "Deposit must be greater than 0.001 ether"
+        );
         _;
     }
 
@@ -195,7 +217,7 @@ contract BigBank is Bank {
 // Admin contract
 contract Admin {
     address public owner;
-    
+
     constructor() {
         owner = msg.sender;
     }
@@ -203,7 +225,10 @@ contract Admin {
     // Function to withdraw funds from a bank contract
     function adminWithdraw(IBank bank) external {
         require(msg.sender == owner, "Only owner can perform this operation");
-        require(bank.admin() == address(this), "This contract is not the admin of the bank");
+        require(
+            bank.admin() == address(this),
+            "This contract is not the admin of the bank"
+        );
         bank.withdraw();
     }
 

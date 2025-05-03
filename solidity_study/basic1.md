@@ -921,6 +921,49 @@ oracleContract.events.NewRequest({ fromBlock: 'latest' })
 7. 外部函数的参数（非返回参数）的数据位置被强制指定为 **calldata** ，效果跟 memory 差不多。 
 
 
+### 4.2 calldata
+Calldata 是以太坊中用于**存储合约函数调用参数**的一种特殊数据存储模式，专门用于**外部调用**（external calls）**时传递函数参数**。
+它是只读的、临时的、低 Gas 成本的数据存储位置。
+1. 作用：存储外部调用合约函数时的输入数据（即函数参数）。
+2. 位置：不属于合约存储（Storage），也不占用内存（Memory），而是直接来自交易数据（Transaction Data）。
+3. ✅ 只读（immutable）：不能在函数内修改。✅ 临时性：仅在本次函数调用期间存在，调用结束后消失。
+✅ Gas 成本低：比 memory 和 storage 更省 Gas。
+
+**一个完整的 Calldata 包含两部分：**
+
+(1) 函数选择器（Function Selector）
+前 4 字节，由 keccak256(函数名+参数类型) 的前 4 字节生成。
+
+例如：transfer(address,uint256) 的选择器是 0xa9059cbb。
+
+(2) 参数编码（ABI-Encoded Parameters）
+参数按 ABI 编码规则 **打包成 32 字节的块**。
+
+**Calldata 的存储模式 vs. Memory vs. Storage**
+特性     	Calldata	                      Memory	          Storage
+存储位置	交易输入（Tx Input）	          临时内存（RAM）	   链上存储（持久化）
+可变性	❌ 只读（不可修改）	             ✅ 可修改	         ✅ 可修改
+Gas 成本	⚡ 最低（仅读取）	       💰 中等（临时操作）	   💸 最高（链上存储变更）
+适用场景	外部函数（external）的参数	  内部计算时的临时变量	     合约状态变量
+
+
+**public vs. external 函数的区别**
+特性	             public函数	                         external 函数
+调用者	     内部（合约内）和外部（EOA/其他合约）	    仅外部（EOA/其他合约）
+Gas 成本	   略高（支持内部调用）	                  更低（专为外部调用优化）
+参数存储	       默认用 memory（动态类型）	       默认用 calldata（更省 Gas）
+常见用途	       需要被内外调用的通用函数	          仅需外部调用的函数（如接口暴露）
+
+**关键区别：**
+- public 函数：
+可以在合约内部直接调用（如 this.foo() 或直接 foo()）。
+参数（如 bytes、string）默认存储在 memory 中，消耗更多 Gas。
+
+- external 函数：
+不能在合约内部直接调用（必须通过 this.functionName() 或外部地址调用）。
+参数默认用 calldata，适合高频调用的接口（如 ERC-20 的 transfer）。
+
+
 ### 4.2 内存memory 、存储storage 、栈（stack）的区别
 (1) storage：链上状态存储
 本质：是**合约**的**永久存储空间**，存储在区块链的状态树中（类似数据库）。

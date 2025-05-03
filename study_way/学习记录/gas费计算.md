@@ -29,6 +29,24 @@ MaxFeePerGas=Base Fee  +  Priority Fee
 
 ## 燃烧掉的和矿工收益
 燃烧掉 = Base Fee * gas used
-矿工收益 = MaxPriorityFeePerGas * gas used
+矿工收益 = Priority Fee * gas used
 
 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2
+
+
+# Gas 消耗量（Gas Used）
+1. 定义：交易实际执行消耗的 Gas 数量，由以太坊虚拟机（EVM）计算得出。
+2. 实际消耗 Gas = 基础交易费（21,000） + 执行合约代码的 Gas
+3. 如何获取：
+- 通过区块链浏览器（如 Etherscan）查看交易的 Gas Used 字段。
+- 使用 eth_estimateGas API 预估。
+
+# 深入理解  Gas 费用 （你支付的 ETH 金额）
+总费用（ETH） = Gas Used × Gas Price（单位：Gwei）
+示例：总费用 = 50,000 × 20 Gwei = 1,000,000 Gwei = 0.001 ETH
+
+# Gas Limit 的作用
+1. 定义：你为交易设置的 Gas 预算上限（防止代码错误耗尽 Gas）。
+2. 规则：
+- 如果 Gas Used ≤ Gas Limit：交易成功，按实际消耗收费。
+- 如果 Gas Used > Gas Limit：交易失败，但仍会扣除 Gas Limit × Gas Price 的 ETH。

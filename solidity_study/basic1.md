@@ -596,7 +596,7 @@ send 是 transfer 的低级版本。
 - 所以为了保证 以太币Ether 发送的安全，一定要检查 send 的返回值，
 - 使用 transfer 或者更好的办法： 使用一种接收者可以取回资金的模式。
 
-1.  call， staticcall 和 delegatecall
+3.  call， staticcall 和 delegatecall
 - 此外，为了与不符合 应用二进制接口Application Binary Interface(ABI) 的合约交互，于是就有了可以接受任意类型任意数量参数的 call 函数。
 - 这些参数会被打包到以 32 字节为单位的连续区域中存放。
  
@@ -679,6 +679,37 @@ contract CallTest {
     //delegatecall调用得合约可以比做是类库，调用结果影响当前合约得状态
 
 }
+
+
+4. 使用call发送以太币（**推荐方式**）
+- **举例**：
+function safeSendETH(address payable to, uint256 amount) internal {
+    (bool success, ) = to.call{value: amount, gas: 30000}("");
+    require(success, "ETH transfer failed");
+}
+
+- **特点**：
+
+灵活 Gas 控制：可自定义 Gas（默认传递所有剩余 Gas，更安全）。
+
+手动异常处理：需检查 success，否则可能静默失败。
+
+兼容所有场景：支持发送 ETH 到 EOA（外部账户）或合约。
+
+
+5. selfdestruct(address)（**合约自毁函数，强制发送 ETH**）
+前面已经有描述过，现在再补充一下：
+**代码**：selfdestruct(payable(address));
+
+**作用**：
+强制发送：销毁当前合约，并将余额强制发送到指定地址（无视接收合约的 receive 或 fallback 逻辑）。
+
+使用场景：紧急提款或合约销毁时使用。
+
+**警告**：
+一旦调用，合约代码和存储将被永久删除。
+
+在以太坊升级（如 EIP-4758）后，此功能可能被禁用。
 
 
 ### 5.定长字节数组--**引用类型**
@@ -997,16 +1028,6 @@ calldata 是以太坊中用于**存储合约函数调用参数**的一种特殊�
 4. **注意**：calldata **只能用于** 数组（array）、结构体（struct）或映射（mapping） 这样的**复杂类型**。
 
 但你在 address 这种 基本类型（值类型） 上使用了 calldata，这是不允许的。
-
-**一个完整的 calldata 包含两部分：**
-
-(1) 函数选择器（Function Selector）
-前 4 字节，由 keccak256(函数名+参数类型) 的前 4 字节生成。
-
-例如：transfer(address,uint256) 的选择器是 0xa9059cbb。
-
-(2) 参数编码（ABI-Encoded Parameters）
-参数按 ABI 编码规则 **打包成 32 字节的块**。
 
 **calldata 的存储模式 vs. Memory vs. Storage**
 特性     	calldata	                      Memory	          Storage
@@ -1378,6 +1399,7 @@ function f(uint start, uint daysAfter) public {
 ABI（Application Binary Interface，应用二进制接口）编码是 Solidity 中用于 **合约间调用** 或 **与外部交互时**，**将函数名、参数等数据转换为标准化二进制格式的规则**。
 - 它定义了如何 **编码调用数据**和 **解码返回数据**，
 - 确保不同合约或外部系统能正确理解传递的信息。
+
 #### 在以下场景中会用到 ABI 编码：
 1. 合约调用其他合约（如 call、delegatecall）。
 2. 外部交易发送到合约（如 Metamask 发送交易）。
@@ -1739,7 +1761,7 @@ revert(string reason):
 3. revert 函数可以用来标记错误并恢复当前的调用。
 调用中包含有关错误的详细信息是可能的，这个消息会被返回给调用者。
 - 当子调用发生异常时，它们会自动“冒泡”（即重新抛出异常）。
-- 这个规则的**例外是** send 和低级函数 call ， delegatecall 和 callcode --如果这些函数发生异常，
+- 这个规则的**例外是** send 和低级函数 call ， delegatecall --如果这些函数发生异常，
 将返回 **false** ，而不是“冒泡”。
 - 作为 EVM 设计的一部分，如果被调用合约帐户不存在，则低级函数 call ， delegatecall 和 callcode 将返回 success。
 
@@ -1764,7 +1786,7 @@ contract Sharer {
 ## require 式异常：
 - 调用 throw 。
 - 如果你调用 require 的参数（表达式）最终结算为 false 。
-- 如果你通过消息调用调用某个函数，但该函数没有正确结束（它耗尽了 gas，没有匹配函数，或者本身抛出一个异常），上述函数不- 包括低级别的操作 call ， send ， delegatecall 或者 callcode 。低级操作不会抛出异常，而通过返回 false 来指示失- 败。
+- 如果你通过消息调用调用某个函数，但该函数没有正确结束（它耗尽了 gas，没有匹配函数，或者本身抛出一个异常），上述函数不- 包括低级别的操作 call ， send ， delegatecall 。低级操作不会抛出异常，而通过返回 false 来指示失- 败。
 - 如果你使用 new 关键字创建合约，但合约没有正确创建（请参阅上条有关”未正确完成“的定义）。
 - 如果你对不包含代码的合约执行外部函数调用。
 - 如果你的合约通过一个没有 payable 修饰符的公有函数（包括构造函数和 fallback 函数）接收 Ether。
@@ -2052,18 +2074,38 @@ contract C {
 4. 如果不存在这样的函数，但存在可支付的 回退函数，则在普通以太转账时将调用回退函数。 
 5. 如果**既没有接收以太函数**，**也没有可支付的回退函数**，合约将无法通过调用不可支付函数来接收以太，将**抛出异常**。
 6. 在最坏的情况下，receive 函数只有 2300 gas 可用（例如当使用 send 或 transfer 时），几乎没有空间执行其他操作，除了基本的日志记录。
-7. 以下操作将消耗超过 2300 gas 补贴：
+
+**注意：逻辑解释**：
+- 当你的合约用 transfer() 或 send() 给别人转 ETH 时，对方如果是合约，会触发它的 receive() 或 fallback() 函数。
+- 这时，以太坊会强行限制：对方合约只能用 2300 Gas 来执行这个函数（就像只给它 2300 块钱的「油费」）。
+- 历史安全设计：为了防止黑客攻击（比如重入攻击），故意不给太多 Gas。
+- 2300 Gas 能干啥：
+  存一个数字到存储（如果之前存过，约 800 Gas）。
+  发一个简单的日志事件（约 375 Gas）。
+  不够调用其他合约（至少需要 2600 Gas）。
+- 解决办法：
+  (bool success, ) = 对方地址.call{value: 1 ether, gas: 50000}("");
+require(success, "转账失败");
+
+7.个人得一些理解：
+- 如果不使用call方法去转账，send和transfer默认是支付2300gas，如果实际转账需要更多得gas，那么转账就可能在消耗了2300gas后，（消耗得gas被矿工收走，不退还），且转账失败，ETH 转账会被撤销（钱退回你的账户），交易状态显示 reverted（失败）。。
+- 固定给 2300 Gas：无论你设置的 Gas Limit 是多少，这两个函数强制只给接收合约的 receive() 或 fallback() 2300 Gas。
+
+8. 以下操作将消耗超过 2300 gas 补贴：
 - 写入存储
 - 部署合约
 - 调用消耗大量 gas 的外部函数
 - 发送以太币
-8. **warning1**：
+  
+9. **warning1**：
 当以太币直接发送到合约（没有函数调用，即发送者使用 send 或 transfer），但接收合约**未定义接收以太币函数或可支付回退函数时**，将抛出异常，退回以太币（在 Solidity v0.4.0 之前是不同的）。
-9. **warning2**：
+
+10.  **warning2**：
 没有接收以太币函数的合约可以作为 coinbase 交易 （即 矿工区块奖励）的接收者或作为 selfdestruct 的目标接收以太币。
 合约无法对这种以太转账做出反应，因此也无法拒绝它们。这是 EVM 的设计选择，Solidity 无法规避。
 这也意味着 address(this).balance 可能高于合约中实现的一些手动会计的总和（即在接收以太币函数中更新计数器）。
-10.**举例：**
+
+11.**举例：**
 contract Sink {
     event Received(address, uint);
     //接收以太币的函数,当合约收到以太币时，这个函数会被自动调用。
@@ -2071,6 +2113,63 @@ contract Sink {
         emit Received(msg.sender, msg.value);
     }
 }
+
+
+## 如何计算以太坊转账得Gas花费
+1. EOA → 合约（触发 receive() 或 fallback()）
+基础交易费：21,000 Gas（所有交易必须支付）
+
+执行接收合约的 Gas：
+
+如果使用 transfer() 或 send()：固定 2,300 Gas（无论实际需要多少）。
+
+如果使用 call：按接收合约实际消耗计算（可自定义 Gas）。
+
+总 Gas：
+
+transfer/send：21,000 + 2,300 = 23,300 Gas（固定）
+
+call：21,000 + 实际消耗（例如 21,000 + 5,000 = 26,000 Gas）
+
+**示例：**
+// 使用 transfer（固定 2,300 Gas 给接收合约）
+payable(contractAddress).transfer(1 ether); // 总 Gas: 23,300
+
+// 使用 call（自定义 Gas）
+(bool success, ) = payable(contractAddress).call{value: 1 ether, gas: 50_000}("");
+// 总 Gas: 21,000 + 实际消耗（≤ 50,000）
+
+
+2.  EOA → EOA（普通转账）
+仅基础交易费：21,000 Gas（外部地址没有代码，不执行任何逻辑）
+
+总 Gas：21,000 Gas（固定）
+
+**示例：**
+payable(userAddress).transfer(1 ether); // 总 Gas: 21,000
+
+
+3. 合约 → 合约（触发 receive() 或 fallback()）
+基础交易费：21,000 Gas
+
+执行接收合约的 Gas：
+
+如果使用 transfer() 或 send()：固定 2,300 Gas。
+
+如果使用 call：按实际消耗计算。
+
+总 Gas：
+
+transfer/send：21,000 + 2,300 = 23,300 Gas（固定）
+
+call：21,000 + 实际消耗
+
+**示例：**
+// 合约 A 调用合约 B
+(bool success, ) = payable(contractB).call{value: 1 ether}("");
+// 总 Gas: 21,000 + 实际消耗
+
+
 
 ## 回退函数fallback
 1. **一个合约最多可以有一个 fallback 函数**，声明为 fallback () external [payable] 或 fallback (bytes calldata input) external [payable] returns (bytes memory output) （两者均不带 function 关键字）。
@@ -2326,4 +2425,31 @@ contract B is A {
 是你通**过 mapping 手动定义的变量**，仅用于 内部记账，记录每个用户“理论上”存入了多少 ETH。
 
 与合约实际 ETH 余额无自动关联，完全由代码逻辑控制。
+
+
+# Calldata 的用途
+## (1) 交易（Transaction）中调用合约
+当你在钱包（如 MetaMask）或 Remix 中调用合约函数时，底层会生成 Calldata 并附加到交易中。
+## Calldata 是根据 ABI 规则编码后的二进制数据，实际传递给合约的字节码。
+
+**一个完整的 Calldata  包含两部分：**
+
+(1) 函数选择器（Function Selector）
+前 4 字节，由 keccak256(函数名+参数类型) 的前 4 字节生成。
+
+例如：transfer(address,uint256) 的选择器是 0xa9059cbb。
+
+(2) 参数编码（ABI-Encoded Parameters）
+参数按 ABI 编码规则 **打包成 32 字节的块**。
+
+
+**总结一下**：
+ABI 的**两种**表现形式
+
+1. JSON ABI	人类可读的合约接口描述，用于开发工具（如Web3.js、Ethers.js），	描述函数名称、参数类型、返回类型等。
+**通常由 Solidity 编译器（solc）生成。**
+
+2. 二进制 ABI 编码	机器可读的底层数据格式，用于EVM执行（如交易中的calldata）	函数调用时实际传输的十六进制数据（如0xa9059cbb...）
+**由 abi.encode 或函数调用生成.**
+
 

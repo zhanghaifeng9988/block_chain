@@ -5,13 +5,22 @@ contract Counter {
     uint public counter;
     address public sender;
 
+    // 修正事件声明，明确参数类型
+    event FallbackCalled(address indexed sender, bytes data);
+
     function count() public {
         counter += 1;
         sender = msg.sender;
     }
-    // fallback() external payable {
-    // }
 
+    // 显式接收 ETH 的函数
+    receive() external payable {}
+
+    // 处理未知调用
+    fallback() external payable {
+        // 自定义逻辑（例如转发调用或记录事件）
+        emit FallbackCalled(msg.sender, msg.data);
+    }
 }
 
 contract CallTest {
@@ -35,7 +44,7 @@ contract CallTest {
     }
 
     //调用逻辑：通过call调用Counter合约的count()函数
-    //调用结果：Counter合约的counter+1，sender更新为CallTest合约地址
+    //调用结果：Counter合约的:  counter+1，sender更新为CallTest合约地址
     function lowCallCount(address addr) public {
         bytes memory methodData =abi.encodeWithSignature("count()");
         (bool success, ) =addr.call(methodData);

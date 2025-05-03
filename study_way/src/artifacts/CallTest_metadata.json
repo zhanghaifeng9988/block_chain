@@ -6,8 +6,14 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
-				"name": "count",
+				"inputs": [
+					{
+						"internalType": "contract Counter",
+						"name": "c",
+						"type": "address"
+					}
+				],
+				"name": "callCount",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -23,6 +29,32 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "addr",
+						"type": "address"
+					}
+				],
+				"name": "lowCallCount",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "addr",
+						"type": "address"
+					}
+				],
+				"name": "lowDelegatecallCount",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -52,7 +84,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/5day_call&delegatecall.sol": "Counter"
+			"study_way/src/5day_call&delegatecall.sol": "CallTest"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},

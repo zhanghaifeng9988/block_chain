@@ -19,3 +19,6 @@ contract TestLab {
         return x.add(y);
     }
 }
+//如果库函数都是 internal 的,库代码会嵌入到合约。
+
+//如果库函数有external 或 public ,库需要单独部署,并在部署合约时进行链接,使用委托调用

@@ -2453,3 +2453,209 @@ ABI 的**两种**表现形式
 **由 abi.encode 或函数调用生成.**
 
 
+# EIP ERC标准
+
+标准:降低沟通协作成本、增强互操作性
+
+•- EIP: Ethereum Improvement Proposal 以太坊改进提案
+
+•- 不是所有的 EIP 都是标准
+
+•- 提交改进 Issue (编号)、社区的讨论(实现及验证) 、形成共识、作为标准
+
+•- ERC20:https://github.com/ethereum/EIPs/issues/20
+
+•- EIP1599:https://github.com/ethereum/EIPs/issues/1599
+
+![1746333270517](image/basic1/1746333270517.png)
+
+## ERC20 标准
+ERC20 是 以太坊上最基础的代币标准，它定义了智能合约如何发行和管理同质化代币（Fungible Token）。
+几乎所有以太坊上的代币（如 USDT、USDC、UNI 等）都遵循 ERC20 标准。
+
+### ERC20 是一个通用的智能合约接口，定义了智能合约必须实现的基本功能。
+1. ERC20 是什么？
+ERC = Ethereum Request for Comments（以太坊提案），类似互联网的 RFC 标准。
+
+20 = 提案编号，由 Fabian Vogelsteller 在 2015 年提出。
+
+核心作用：规定了一套接口规则，确保不同的代币合约可以互相兼容。
+
+2. 如何理解 ERC20？
+可以把 ERC20 看作 代币的「通用语言」：
+
+- 就像 USB 接口一样，不同设备只要遵循 USB 标准就能互相连接。
+
+- 任何支持 ERC20 的钱包（如 MetaMask）、交易所（如 Binance）或 DApp（如 Uniswap）都能自动识别和管理这些代币。
+
+3. ERC20标准包含哪些内容
+
+• 定义统一的函数名:名称、发行量、转账函数、转账事件等
+
+• 以便交易所、钱包进行集成
+
+• 所有实现了这些函数的合约都是 ERC20 Token
+
+• ERC20 可以表示任何同质的可以交易的内容:
+
+• 货币、股票、积分、债券、利息...
+
+• 可以用数量来表示的内容 基本上可以 ERC20 表示
+![1746335334543](image/basic1/1746335334543.png)
+
+
+4. 代币合约如何实现 ERC20 标准?
+contract ERC20 {
+mapping(address => uint256) balanceOf;
+}
+
+interface IERC20 {
+
+function name() external view returns (string memory);  // 代币名称
+function symbol() external view returns (string memory); // 代币符号
+function decimals() external view returns (uint8); // 小数位数
+
+function totalSupply() external view returns (uint256); // 总发行量
+function balanceOf(address account) external view returns (uint256); // 账户余额
+
+function transfer(address to, uint256 amount) external returns (bool); // 转账，
+//调用者只能是代币的持有者,用户直接将自己的代币转给别人（比如钱包转账）
+
+
+
+function approve(address spender, uint256 amount) external returns (bool); // 授权
+//用途：设置授权额度（允许 spender 代表你花费一定数量的代币）。
+//调用者：代币所有者（owner）。
+//允许另一个地址（spender，通常是智能合约）从你的账户中转出最多 amount的代币。
+//举例
+function approve(address spender, uint256 amount) external returns (bool) {
+    allowances[msg.sender][spender] = amount; // 修改授权映射
+    emit Approval(msg.sender, spender, amount); // 触发事件
+    return true;
+}
+
+
+function allowance(address owner, address spender) external view returns (uint256); // 授权
+//用途：查询授权额度（查看 spender 当前被允许花费的代币数量）。
+//调用者：任何人（只读函数，不修改状态）。
+//检查 owner 授权给 spender 的代币剩余额度。
+//举例
+function allowance(address owner, address spender) external view returns (uint256) {
+    return allowances[owner][spender]; // 直接返回存储的授权值
+}
+
+**注意**：设置授权和查询授权**总结**
+✅ approve 是 设置 allowance 的值。
+✅ allowance 是 查询 已设置的授权额度。
+
+
+
+//被授权人调用该函数，将授权额度内的金额，按需转给第三个账户地址
+function transferFrom(address from, address to, uint256 amount) external returns (bool); // 转账
+//允许 某个被授权的地址（通常是智能合约） 从 from 地址转出代币到 to 地址。
+//前提：from 必须事先通过 approve 或 increaseAllowance 授权调用者（msg.sender）使用其代币。
+//调用者可以是任意地址（但需 from 提前授权）。
+//常用于智能合约代理转账（如 DEX 交易、质押等）。
+
+
+
+
+**注意** ### **increaseAllowance 和 decreaseAllowance**
+在 ERC-20 代币标准中，increaseAllowance 和 decreaseAllowance 是 OpenZeppelin 等现代合约库推荐使用的更安全的授权函数，**用于替代直接调用 approve**。
+
+
+function increaseAllowance(address spender, uint256 addedValue) public returns (bool);
+// 增加某个授权地址（spender）的可操作代币额度。
+//相当于 approve(spender, allowance(owner, spender) + addedValue)，但以原子操作完成（避免安全问题）。
+//使用场景
+//当你想追加授权额度（例如原本授权 100，现在想再加 50）。
+//比直接调用 approve 更安全（无需先读取当前额度，再计算新值）。
+
+
+function decreaseAllowance(address spender, uint256 subtractedValue) public returns (bool);
+//功能
+//减少某个授权地址（spender）的可操作代币额度。
+//相当于 approve(spender, allowance(owner, spender) - subtractedValue)，但以原子操作完成。
+//使用场景
+//当你想减少授权额度（例如原本授权 100，现在想减少 30）。
+//避免直接调用 approve(0) 后重新授权的麻烦。
+
+
+
+event Transfer(address indexed from, address indexed to, uint256 value); // 转账事件
+event Approval(address indexed owner, address indexed spender, uint256 value); // 授权事件
+}
+
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract MyERC20 is ERC20 {
+constructor() ERC20(“OpenSpace BootCamp”, "CAMP") {
+_mint(msg.sender, 10000*10**18);
+}
+}
+
+# 问题:如何用 uint 表示小数?
+contract FixedPointExample {
+    uint constant SCALE = 10**18; // 缩放因子（18位小数）
+
+    // 存储 2.5（实际存储为 2.5 * 10^18 = 2500000000000000000）
+    uint public value = 25 * 10**17; // 等同于 2.5 * SCALE
+
+    // 加法：2.5 + 1.2 = 3.7
+    // 前端调用这个函数得时候，实参需要手动配置 a * SCALE  b * SCALE进行放大计算
+    // 然后前端再将返回值进行缩小计算
+    function add(uint a, uint b) public pure returns (uint) {
+        return a + b; // 直接整数相加（因为缩放因子一致）
+    }
+
+    // 乘法：(2.5 * 1.2) / SCALE = 3.0
+    // 前端调用这个函数得时候，a 和 b 都需要乘以 SCALE 进行放大计算
+    // 然后前端再将返回值进行缩小计算
+    function multiply(uint a, uint b) public pure returns (uint) {
+        return (a * b) / SCALE; // 需要除以缩放因子
+    }
+
+    // 除法：(2.5 / 1.2) * SCALE ≈ 2.083...
+    function divide(uint a, uint b) public pure returns (uint) {
+        return (a * SCALE) / b; // 先乘缩放因子再除
+    }
+}
+
+
+# SOLIDITY - OpenZeppelin
+OpenZeppelin 功能丰富:实现了众多 ERC 标准。
+
+• 经过社区反复审计与验证
+
+• 最佳实践
+
+• 善于复用库,不仅提高开发效率,还可以提高安全性
+
+• 文档:https://docs.openzeppelin.com/contracts/5.x/
+
+• 代码库:https://github.com/OpenZeppelin/openzeppelin-
+contracts
+
+• 安装(Hardhat):npm install @openzeppelin/contracts —save-dev
+
+• 安装(Foundry): forge install OpenZeppelin/openzeppelin-contracts
+
+
+
+设置 Token 名称（name）："BaseERC20"
+设置 Token 符号（symbol）："BERC20"
+设置 Token 小数位decimals：18
+设置 Token 总量（totalSupply）:100,000,000
+允许任何人查看任何地址的 Token 余额（balanceOf）
+允许 Token 的所有者将他们的 Token 发送给任何人（transfer）；转帐超出余额时抛出异常(require),并显示错误消息 “ERC20: transfer amount exceeds balance”。
+允许 Token 的所有者批准某个地址消费他们的一部分Token（approve）
+允许任何人查看一个地址可以从其它账户中转账的代币数量（allowance）
+允许被授权的地址消费他们被授权的 Token 数量（transferFrom）；
+转帐超出余额时抛出异常(require)，异常信息：“ERC20: transfer amount exceeds balance”
+转帐超出授权数量时抛出异常(require)，异常消息：“ERC20: transfer amount exceeds allowance”。
+注意：
+在编写合约时，需要遵循 ERC20 标准，此外也需要考虑到安全性，确保转账和授权功能在任何时候都能正常运行无误。
+代码模板中已包含基础框架，只需要在标记为“Write your code here”的地方编写你的代码。不要去修改已有内容！
+
+希望你能用一段优雅、高效和安全的代码，完成这个挑战。

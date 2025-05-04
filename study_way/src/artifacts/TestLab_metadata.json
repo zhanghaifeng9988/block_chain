@@ -1,0 +1,70 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "x",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "y",
+						"type": "uint256"
+					}
+				],
+				"name": "testAdd",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "pure",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"study_way/src/6day_testLib.sol": "TestLab"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"study_way/src/6day_testLib.sol": {
+			"keccak256": "0x4fbed6b82613fe3baa9315e9b788d56fd931ff90e2ecc1e322c52f4c9937ae84",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d2e224adc19b7505a3f274d5dd13651568e9aa3c3348fcb0b27bb1eec11c00c0",
+				"dweb:/ipfs/QmYj9si3KT4YSWy3sE9bu3yi4y3MAmAS93ZzACSHCyGqxL"
+			]
+		}
+	},
+	"version": 1
+}

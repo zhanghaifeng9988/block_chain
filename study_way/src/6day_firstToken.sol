@@ -28,7 +28,7 @@ contract BaseERC20 {
         balances[msg.sender] = totalSupply;   // 将所有初始代币分配给合约部署者
         }
 
-    //  该函数用于实现账户余额得查询
+    //  该函数用于实现账户存入取出代币数量后结果得查询
     function balanceOf(address _owner) public view returns (uint256 balance) {
         // write your code here
         return balances[_owner];
@@ -46,7 +46,7 @@ contract BaseERC20 {
         return true;   
     }
 
-    //  被授权人调用该函数，将授权额度内的金额，按需转给第三个账户地址_to
+    //  被授权人调用该函数，传入代币拥有者的地址_from,将授权额度内的金额，按需转给第三个账户地址_to
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
         // write your code here
         require(_to != address(0),'Invalid Address');
@@ -62,10 +62,11 @@ contract BaseERC20 {
     }
 
     
+    //代币所有者调用，允许另一个地址（spender，通常是智能合约）
     //在标准的ERC20实现中，确实允许授权（approve）额度大于授权人当前余额，这是设计上的一个重要特性。
     function approve(address _spender, uint256 _value) public returns (bool success) {
-        // write your code here
-        allowances[msg.sender][_spender] = _value; // 给调用合约的账户做授权，将自己的代币授权给_spender账户_value额度
+        // _spender 通常指代合约地址
+        allowances[msg.sender][_spender] = _value; // 代币拥有者调用该函数，将自己的代币授权给_spender账户_value额度
         emit Approval(msg.sender, _spender, _value); 
         return true; 
     }

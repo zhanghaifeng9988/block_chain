@@ -6,7 +6,13 @@
 	"output": {
 		"abi": [
 			{
-				"inputs": [],
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_token",
+						"type": "address"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "constructor"
 			},
@@ -16,32 +22,7 @@
 					{
 						"indexed": true,
 						"internalType": "address",
-						"name": "owner",
-						"type": "address"
-					},
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "spender",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "value",
-						"type": "uint256"
-					}
-				],
-				"name": "Approval",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "from",
+						"name": "user",
 						"type": "address"
 					},
 					{
@@ -53,32 +34,59 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "value",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "Transfer",
+				"name": "Deposited",
 				"type": "event"
 			},
 			{
+				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": true,
 						"internalType": "address",
-						"name": "_owner",
+						"name": "user",
 						"type": "address"
 					},
 					{
-						"internalType": "address",
-						"name": "_spender",
-						"type": "address"
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
 					}
 				],
-				"name": "allowance",
+				"name": "UserWithdrawn",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "admin",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "Withdrawn",
+				"type": "event"
+			},
+			{
+				"inputs": [],
+				"name": "admin",
 				"outputs": [
 					{
-						"internalType": "uint256",
-						"name": "remaining",
-						"type": "uint256"
+						"internalType": "address",
+						"name": "",
+						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -88,87 +96,37 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "_spender",
+						"name": "",
 						"type": "address"
-					},
+					}
+				],
+				"name": "balances",
+				"outputs": [
 					{
 						"internalType": "uint256",
-						"name": "_value",
+						"name": "",
 						"type": "uint256"
 					}
 				],
-				"name": "approve",
-				"outputs": [
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
 					{
-						"internalType": "bool",
-						"name": "success",
-						"type": "bool"
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
 					}
 				],
+				"name": "deposit",
+				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_owner",
-						"type": "address"
-					}
-				],
-				"name": "balanceOf",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "balance",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [],
-				"name": "decimals",
-				"outputs": [
-					{
-						"internalType": "uint8",
-						"name": "",
-						"type": "uint8"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "name",
-				"outputs": [
-					{
-						"internalType": "string",
-						"name": "",
-						"type": "string"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "symbol",
-				"outputs": [
-					{
-						"internalType": "string",
-						"name": "",
-						"type": "string"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "totalSupply",
+				"name": "getBankBalance",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -183,52 +141,51 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "_to",
+						"name": "user",
 						"type": "address"
-					},
+					}
+				],
+				"name": "getDepositRecord",
+				"outputs": [
 					{
 						"internalType": "uint256",
-						"name": "_value",
+						"name": "",
 						"type": "uint256"
 					}
 				],
-				"name": "transfer",
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "token",
 				"outputs": [
 					{
-						"internalType": "bool",
-						"name": "success",
-						"type": "bool"
+						"internalType": "contract BaseERC20",
+						"name": "",
+						"type": "address"
 					}
 				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "userWithdraw",
+				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_from",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "_to",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "_value",
-						"type": "uint256"
-					}
-				],
-				"name": "transferFrom",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "success",
-						"type": "bool"
-					}
-				],
+				"inputs": [],
+				"name": "withdraw",
+				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			}
@@ -246,7 +203,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/6day_firstToken.sol": "BaseERC20"
+			"study_way/src/6day_tokenBank.sol": "TokenBank"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -266,6 +223,14 @@
 			"urls": [
 				"bzz-raw://9a17c70e9a3309c6f3d9b209c5e978f6979ac94498392b9450631ad697ccb8cf",
 				"dweb:/ipfs/QmfS8kFHv96f3AqL52qxNU1MaqmbpgsjkdEBz7xvc4Nj1Z"
+			]
+		},
+		"study_way/src/6day_tokenBank.sol": {
+			"keccak256": "0x2125f5660f2ac71edb6f0e6d0885b00412e8080cc40d943584e290331f21bce8",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a9e43eef4831764af1ad287b5170db2c13c225ede3865923b08921681d435743",
+				"dweb:/ipfs/QmWSaEaP25GJPmHnEbjTVC9zDDm1jncz7iVHZpFkASCuoc"
 			]
 		}
 	},

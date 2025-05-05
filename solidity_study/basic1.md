@@ -2550,8 +2550,8 @@ function allowance(address owner, address spender) external view returns (uint25
 
 
 
-//被授权人调用该函数，将授权额度内的金额，按需转给第三个账户地址
-function transferFrom(address from, address to, uint256 amount) external returns (bool); // 转账
+//  被授权人调用该函数，传入代币拥有者的地址_from,将授权额度内的金额，按需转给第三个账户地址_to
+function transferFrom(address _from, address _to, uint256 amount) external returns (bool); // 转账
 //允许 某个被授权的地址（通常是智能合约） 从 from 地址转出代币到 to 地址。
 //前提：from 必须事先通过 approve 或 increaseAllowance 授权调用者（msg.sender）使用其代币。
 //调用者可以是任意地址（但需 from 提前授权）。
@@ -2659,3 +2659,10 @@ contracts
 代码模板中已包含基础框架，只需要在标记为“Write your code here”的地方编写你的代码。不要去修改已有内容！
 
 希望你能用一段优雅、高效和安全的代码，完成这个挑战。
+
+
+
+
+
+代币合约部署后，部署者（1个钱包）拥有所有代币，
+代币合约能否被其他人调用？

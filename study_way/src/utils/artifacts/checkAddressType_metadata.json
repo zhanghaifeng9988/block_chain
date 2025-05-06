@@ -1,0 +1,45 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"study_way/src/utils/checkAddress.sol": "checkAddressType"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"study_way/src/utils/checkAddress.sol": {
+			"keccak256": "0xf838cd9473b5885bb2190e8f06f04134932f2f0f77bf014581a9aaeaf07449f7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://cfb550c37a95f88ed8449f8cbd5a36cd6e10584df7849c25303953033ec5d4f3",
+				"dweb:/ipfs/Qmee7yQdYLHeLyuUzaVJSW1XcY9Ggnav99gXbvB2bmvH2b"
+			]
+		}
+	},
+	"version": 1
+}

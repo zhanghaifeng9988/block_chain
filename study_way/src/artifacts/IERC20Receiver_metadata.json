@@ -1,0 +1,72 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "sender",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "tokensReceived",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"study_way/src/9day_secondToken.sol": "IERC20Receiver"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"study_way/src/9day_secondToken.sol": {
+			"keccak256": "0x44b94f8f51b651f08acfab8fceb224fa7d6a7b9ef6c02b164e516efa62461b86",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://aa4314e443eddc4035df5ed038ac620e99cb19bfa7573fadf352c3f7c0efa07c",
+				"dweb:/ipfs/QmSsGGVztfAD9NkmcFyV6ZvRvwweMs2UjyG5GrdGeyTyvq"
+			]
+		},
+		"study_way/src/utils/checkAddress.sol": {
+			"keccak256": "0x9c3238a48b8d77662f1bd33fff690757c7c7f79fc3b626717b8b8a63ce764bf1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://29ccc6ce4297c4056e85000c73bf07f130080a119fe4a50f434f3be6b603d7dc",
+				"dweb:/ipfs/QmbKhzZvf53XbKhjy9zsBmHiPWzGFiszJStzTD5U4mwAfD"
+			]
+		}
+	},
+	"version": 1
+}

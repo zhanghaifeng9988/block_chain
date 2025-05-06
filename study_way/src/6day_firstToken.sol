@@ -1,7 +1,18 @@
-// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+
+
 
 //ERC20代币  合约实现
+// transferFrom + 授权（approve）机制的设计,为了实现更灵活的代币交互逻辑,尤其是在智能合约之间的自动化场景中。
+// 核心意义在于解耦代币持有者和代币操作者
+// 传统转账（transfer）：只能由代币持有者（钱包A）直接发起转账，操作权限完全集中在持有者手中。
+// 授权后操作（transferFrom）：持有者（钱包A）可以预先授权另一个地址（如智能合约TokenBank）
+// 在特定额度内支配自己的代币，之后合约TokenBank无需持有者再次签名，即可主动划转代币。
+// 典型应用场景： 
+//去中心化交易所（DEX），借贷协议（如Aave、Compound），自动付款/订阅服务
+
 contract BaseERC20 {
     string public name; //代币名称
     string public symbol;  //代币符号
@@ -28,7 +39,7 @@ contract BaseERC20 {
         balances[msg.sender] = totalSupply;   // 将所有初始代币分配给合约部署者
         }
 
-    //  该函数用于实现账户存入取出代币数量后结果得查询
+    //  该函数用于实现账户存入取出代币数量后,结果得查询
     function balanceOf(address _owner) public view returns (uint256 balance) {
         // write your code here
         return balances[_owner];
@@ -62,7 +73,7 @@ contract BaseERC20 {
     }
 
     
-    //代币所有者调用，允许另一个地址（spender，通常是智能合约）
+    //代币所有者调用，允许另一个地址（_spender，通常是智能合约)从代币所有者的账户中转出最多 amount的代币
     //在标准的ERC20实现中，确实允许授权（approve）额度大于授权人当前余额，这是设计上的一个重要特性。
     function approve(address _spender, uint256 _value) public returns (bool success) {
         // _spender 通常指代合约地址

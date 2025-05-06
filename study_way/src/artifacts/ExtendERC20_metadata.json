@@ -249,7 +249,7 @@
 				"outputs": [
 					{
 						"internalType": "bool",
-						"name": "success",
+						"name": "",
 						"type": "bool"
 					}
 				],
@@ -270,7 +270,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/9day_secondToken.sol": "BaseERC20"
+			"study_way/src/9day_secondToken.sol": "ExtendERC20"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -285,11 +285,11 @@
 	},
 	"sources": {
 		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x79202a952d9cd77c646cef6789ca3a30d86065c1359fd5252e4dd0500cf7fb26",
+			"keccak256": "0x44b94f8f51b651f08acfab8fceb224fa7d6a7b9ef6c02b164e516efa62461b86",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://4035d11b7e303f8ab736adb998e080b44b15f18b8845913a2d3004a4cf3048d0",
-				"dweb:/ipfs/QmTJYreUq6EQNjMDAGRdNpRnUdrCX6pwiavpASCiaU87T7"
+				"bzz-raw://aa4314e443eddc4035df5ed038ac620e99cb19bfa7573fadf352c3f7c0efa07c",
+				"dweb:/ipfs/QmSsGGVztfAD9NkmcFyV6ZvRvwweMs2UjyG5GrdGeyTyvq"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

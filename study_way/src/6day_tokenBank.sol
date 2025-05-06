@@ -24,7 +24,7 @@ contract TokenBank {
     event UserWithdrawn(address indexed user, uint256 amount);
 
     constructor(address _token) {
-        token = BaseERC20(_token); // 传进合约地址
+        token = BaseERC20(_token); // 传进合约地址,指向1个已部署的合约
         admin = msg.sender; // 合约部署者设为管理员
     }
 

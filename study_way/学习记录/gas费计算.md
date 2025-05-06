@@ -23,7 +23,7 @@ Priority Fee=min(MaxPriorityFeePerGas,MaxFeePerGas−Base Fee)
 
 ## **gasPrice**的计算（每 Gas 总费用）
 MaxFeePerGas=Base Fee  +  Priority Fee
-1. 根据区块使用率,系统动态调节基础费用 base fee；
+1. 根据区块使用率,系统动态调节基础费用 Base Fee；
 2. 优先费,用户自行设置,作为矿工的奖励；
 3. **基础费销毁**
 
@@ -36,7 +36,7 @@ MaxFeePerGas=Base Fee  +  Priority Fee
 
 # Gas 消耗量（Gas Used）
 1. 定义：交易实际执行消耗的 Gas 数量，由以太坊虚拟机（EVM）计算得出。
-2. 实际消耗 Gas = 基础交易费（21,000） + 执行合约代码的 Gas
+2. Gas Used = 基础交易费（21,000） + 执行合约代码的 Gas
 3. 如何获取：
 - 通过区块链浏览器（如 Etherscan）查看交易的 Gas Used 字段。
 - 使用 eth_estimateGas API 预估。

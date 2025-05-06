@@ -1,4 +1,4 @@
-# solidity 语言学习记录
+# **solidity 语言学习记录**
 
 # 第一个智能合约代码--代币制造
 // SPDX-License-Identifier: MIT
@@ -20,11 +20,12 @@ contract Coin {
 
     // 这是构造函数，只有当合约创建时运行，它只会被执行一次。部署完成的状态，字节码中不包含构造函数代码
     constructor()  {
-        //msg.sender表示当前合约的创建者的地址。在构造函数中，minter 存储创建合约的人的地址。
+        //msg.sender表示当前合约的部署者的地址。在构造函数中，minter 存储部署合约的人的地址。
         minter = msg.sender;
     }
-// 如果 mint 被合约创建者外的其他人调用，则什么也不会发生
-// 如果调用mint函数的是合约的创建者，那么就可以用来管理用户的余额，就是铸造代币的数量
+
+// 如果 mint 被合约部署者外的其他人调用，则什么也不会发生
+// 如果调用mint函数的是合约的部署者，那么就可以用来管理用户的余额，就是铸造代币的数量
     function mint(address receiver, uint amount) public {
         if (msg.sender != minter) return;
         balances[receiver] += amount;//将铸造的金额（amount）加到接收者的余额（balances[receiver]）上
@@ -67,8 +68,23 @@ contract MappingUser {
     }
 }
 
+
 ## event
+## 事件  event
+事件是能方便地调用以太坊虚拟机日志功能的接口。
+**举例：**
+contract SimpleAuction {
+    event HighestBidIncreased(address bidder, uint amount); // 事件
+
+    function bid() public payable {
+        // ...
+        emit HighestBidIncreased(msg.sender, msg.value); // 触发事件
+    }
+}
+
+
 event Sent(address from, address to, uint amount);
+event Sent(address indexed from, address indexed to, uint indexed amount);
 
 这行代码定义了一个名为 Sent 的事件。它包含三个参数：
 address from：表示发送方的地址。
@@ -83,6 +99,7 @@ uint amount：表示发送的金额。
 2. 不可被合约直接读取（只能由外部监听）
 3. Gas成本低（比存储状态变量便宜得多）
 4. **indexed关键字**可以对参数进行索引，使得事件过滤更加高效。
+
 
 ### 日志举例：
 以下是1个从钱包给合约地址存款的事件的日志的内容：
@@ -126,7 +143,7 @@ args	            见下方	                        事件参数（包含存款�
 }
 
 
-
+# 开篇第一个例子的总结和思考，关于智能合约的基本组装
 ## 合约中的构造函数
  constructor()  {
 //msg.sender表示当前合约的创建者的地址。在构造函数中，minter 存储创建合约的人的地址。
@@ -203,15 +220,15 @@ Coin.Sent().watch({}, '', function(error, result) {
 
 1. **外部账户（EOA）：** 由公钥-私钥对（也就是人）控制；也就是web3钱包中创建的公链账户信息；**无代码**，能够主动发起交易；**外部账户的地址是由公钥决定的**
    
-2. **合约账户：**  **由智能合约代码**创建和控制。合约账户的地址是在创建该合约时确定的；
+2. **合约账户(CA)：**  **由智能合约代码**创建和控制。合约账户的地址是在**部署该合约时确定的**；
 由和账户一起存储的智能合约代码控制，正常不能主动发起交易，如果发起主动交易，**需被 EOA 或其他合约触发**。
 **合约账户的地址是在部署时生成的**，通常是通过创建者的地址和该交易的随机数（nonce）进行哈希运算得到的。例如，使用以下算法：
 合约地址=Keccak256(rlp([sender,nonce]))[12:]
-创建者：**可以是钱包地址**，**也可以是其他合约地址**。
+**部署**者：**可以是钱包地址**，**也可以是其他合约地址**。
 
 3. 每个**账户**都有一个**键值对形式的持久化存储**。其中 **key 和 value 的长度都是256位**，我们称之为 **存储** 。
 
-4. 每个账户有一个以太币余额（ balance ）（单位是“Wei”）。
+4. 每个**账户**有一个以太币余额（ balance ）（单位是“Wei”）。
 
 
 ## 交易
@@ -225,7 +242,7 @@ Coin.Sent().watch({}, '', function(error, result) {
 ## Gas
 1. 每笔交易都收取一定数量的 gas ，目的是限制执行交易所需要的工作量和为交易支付手续费。
 2. EVM 执行交易时，gas 将按特定规则逐渐耗尽。
-gas price 是交易发送者设置的一个值，发送者账户需要预付的手续费= gas_price * gas
+gas price 是交易发送者设置的一个值，发送者账户需要预付的手续费= gas_price * gaslimit。详细解释见：study_way\学习记录\gas费计算.md
 3. 无论执行到什么位置，一旦 gas 被耗尽（比如降为负值），将会触发一个 out-of-gas 异常。当前调用帧（call frame）所做的所有状态修改都将被**回滚**。
 4. 调用帧（call frame），指的是下文讲到的EVM的运行栈（stack）中当前操作所需要的若干元素。
 
@@ -241,25 +258,25 @@ gas price 是交易发送者设置的一个值，发送者账户需要预付的�
 定义：Nonce 是一个递增的计数器，**用于记录该账户已经发起的交易数量。**
 作用：
 对于外部账户（EOA），Nonce 表示该账户已经发送的交易数量。
-对于合约账户，Nonce 表示该合约创建的子合约数量。
+对于合约账户(CA)，Nonce 表示该合约创建的子合约数量。
 重要性：**Nonce 用于防止重放攻击，确保每次交易的唯一性。**
 
 **2. Balance**
-定义：Balance 表示账**户的以太币余额**，以 Wei 为单位（1 Ether = 10^18 Wei）。
+定义：Balance 表示**账户的以太币余额**，以 Wei 为单位（1 Ether = 10^18 Wei）。
 作用：记录账户当前持有的以太币数量，每次交易或转账都会影响该余额。
 
 **3. StorageRoot**
 定义：StorageRoot 是账户存储树的根节点哈希值。
 作用：
-对于合约账户，StorageRoot 指向该合约的存储数据区，**存储了合约的状态变量**。
-对于外部账户，StorageRoot **通常为空**。
+对于合约账户(CA)，StorageRoot 指向该合约的存储数据区，**存储了合约的状态变量**。
+对于外部账户（EOA），StorageRoot **通常为空**。
 存储结构：合约的存储数据以键值对的形式组织，**通过 Merkle Patricia Trie（MPT）树结构存储**，以确保数据的高效检索和完整性。
 
 **4. CodeHash**
 定义：CodeHash 是**账户代码的哈希值**。
 作用：
-对于合约账户，CodeHash 存储了合约代码的哈希值，**用于验证合约代码的完整性**。
-对于外部账户，CodeHash **通常为空**。
+对于合约账户(CA)，CodeHash 存储了合约代码的哈希值，**用于验证合约代码的完整性**。
+对于外部账户（EOA），CodeHash **通常为空**。
 不可变性：合约代码一旦部署，CodeHash 就不可更改，这保证了合约代码的不可篡改。
 
 **5. 总结**
@@ -271,7 +288,7 @@ CodeHash：存储合约代码的哈希值（**对于合约账户**）。
 这些信息共同构成了以太坊账户的状态，并通过区块链的机制确保其持久化和不可篡改
 
 
-### 2. 合约只能读写存储区内属于自己的部分。
+### 2. 合约只能读写存储区内属于自己的部分。storage数据存储区域。
 **个人的一些理解：**
 其实合约就可以理解为：存储一类型事务的操作过程数据和结果数据的代码逻辑，存储数据的部分可以理解为实体类，执行任务的可以理解为业务逻辑
 
@@ -288,17 +305,16 @@ CodeHash：存储合约代码的哈希值（**对于合约账户**）。
 
 
 
-### 3. 第二个内存区称为 **内存** ，合约会试图为**每一次消息调用**获取一块被重新擦拭干净的内存实例。
+### 3. 第二个内存区称为 **memory** ，合约会试图为**每一次消息调用**获取一块被重新擦拭干净的内存实例。
 
 
 ### 4. EVM 不是基于寄存器的，而是基于栈的，因此所有的计算都在一个被称为 **栈**（stack） 的区域执行。
-栈最大有1024个元素，每个元素长度是一个字（256位）。
-
+栈最大有1024个元素，每个元素长度是256位。
+栈的总存储容量是：1024 × 32 字节 = 32 KB
 
 **注意**：
 1. EVM 的 **栈** 是专门用于 **计算过程 的临时存储**，而 storage 和 memory 是 **数据存储区域**，两者职责不同。
 2. 计算时数据需从 storage 或 memory 加载到栈，结果再写回存储区域
-3. 
 
 
 
@@ -323,6 +339,7 @@ CodeHash：存储合约代码的哈希值（**对于合约账户**）。
 这意味着一个合约可以在运行时从另外一个地址动态加载代码。
 存储、当前地址和余额都指向发起调用的合约，只有代码是从被调用地址获取的。
 ### 这使得 Solidity 可以实现”库“能力：可复用的代码库可以放在一个合约的存储上，如用来实现复杂的数据结构的库。
+**源码见：**study_way/src/5day_call&delegatecall.sol
 
 
 ## 日志
@@ -331,13 +348,13 @@ CodeHash：存储合约代码的哈希值（**对于合约账户**）。
 因为部分日志数据被存储在 布隆过滤器(Bloom filter) 中，我们可以高效并且加密安全地搜索日志，所以那些没有下载整个区块链的网络节点（轻客户端）也可以找到这些日志。
 
 
-##  创建
-合约甚至可以通过一个特殊的指令来创建其他合约（不是简单的调用零地址）。
-创建合约的调用 create calls 和普通消息调用的唯一区别在于，负载会被执行，**执行的结果被存储为合约代码**，调用者/创建者在栈上得到新合约的地址。
+##  部署
+合约甚至可以通过一个特殊的指令来部署其他合约（不是简单的调用零地址）。
+部署合约的调用 create calls 和普通消息调用的唯一区别在于，负载会被执行，**执行的结果被存储为合约代码**，调用者/部署者在栈上得到新合约的地址。
 
 
 ## 自毁
-合约代码从区块链上移除的唯一方式是合约在合约地址上的执行自毁操作 selfdestruct。
+合约代码从区块链上**移除的唯一方式**是合约在合约地址上的执行**自毁操作 selfdestruct**。
 合约账户上剩余的以太币会发送给指定的目标，然后其存储和代码从状态中被移除。
 
 
@@ -372,7 +389,7 @@ as it_mapping：这是 Solidity 语法的一部分，表示将导入的文件或
 每个合约中可以包含 ：状态变量、 函数、 函数修饰器、事件、 结构类型、 和 枚举类型 的声明，且合约可以从其他合约继承。
 
 ## 状态变量
-状态变量是永久地存储在合约存储中的值。
+状态变量是永久地存储在合约存储**storage**中的值。
 
 contract SimpleStorage {
     uint storedData; // 状态变量
@@ -517,18 +534,6 @@ contract PrivateFunctionExample {
 
 3. 当需要动态控制检查逻辑的位置（修改器只能固定在 _; 处）。
 
-## 事件  event
-事件是能方便地调用以太坊虚拟机日志功能的接口。
-contract SimpleAuction {
-    event HighestBidIncreased(address bidder, uint amount); // 事件
-
-    function bid() public payable {
-        // ...
-        emit HighestBidIncreased(msg.sender, msg.value); // 触发事件
-    }
-}
-
-
 
 
 # 类型
@@ -596,8 +601,9 @@ send 是 transfer 的低级版本。
 - 所以为了保证 以太币Ether 发送的安全，一定要检查 send 的返回值，
 - 使用 transfer 或者更好的办法： 使用一种接收者可以取回资金的模式。
 
+
 3.  call， staticcall 和 delegatecall
-- 此外，为了与不符合 应用二进制接口Application Binary Interface(ABI) 的合约交互，于是就有了可以接受任意类型任意数量参数的 call 函数。
+- 此外，为了与不符合 应用二进制接口Application Binary Interface(ABI) 的合约交互，于是就有了可以**接受任意类型任意数量参数**的 call 函数。
 - 这些参数会被打包到以 32 字节为单位的连续区域中存放。
  
 address nameReg = 0x72ba7d8e73fe8eb666ea66babc8116a41bfb10e2; //合约地址定义
@@ -712,7 +718,7 @@ function safeSendETH(address payable to, uint256 amount) internal {
 在以太坊升级（如 EIP-4758）后，此功能可能被禁用。
 
 
-### 5.定长字节数组--**引用类型**
+### 5.**定长**字节数组--**引用类型**
 **关键字有：**bytes1， bytes2， bytes3， ...， bytes32。byte 是 bytes1 的别名。
 
 #### 运算符：
@@ -725,7 +731,7 @@ function safeSendETH(address payable to, uint256 amount) internal {
 - .length 表示这个字节数组的长度
 
 
-### 6. 变长字节数组--**引用类型**
+### 6. **变长**字节数组--**引用类型**
 bytes:
 变长字节数组。**它并不是值类型。**
 string:
@@ -797,9 +803,9 @@ contract test {
 }
 
 
-//pure 是一个函数修饰符，用于声明函数的特性,用于声明一个函数**不会读取或修改区块链上的任何状态**。它只进行本地计算，不会与区块链交互。因为本例中，pure修饰的函数，返回的是1个合约内定义的常量。
+//pure 是一个函数修饰符，用于声明函数的特性,用于声明一个函数**不会读取或修改区块链上的任何状态**。它**只进行本地计算**，**不会与区块链交互**。因为本例中，pure修饰的函数，返回的是1个合约内定义的常量。
 
-//defaultChoice 是一个常量,**它的值在合约编译时就已经确定**为 ActionChoices.GoStraight,它的值在合约内部是固定的，不会改变,它并不存储在区块链上，而是直接嵌入到合约的字节码中。
+//defaultChoice 是一个常量,**它的值在合约编译时就已经确定**为 ActionChoices.GoStraight,它的值在合约内部是固定的，不会改变,它**并不存储在区块链上**，而是直接**嵌入到合约的字节码中**。
 所以，读取它得值不需要访问区块链，所以，可以使用pure修饰符来修饰getDefaultChoice()。
 
 //view 是一个函数修饰符，用于声明一个函数不会修改区块链上的任何状态，但**可以读取区块链上的状态**。
@@ -915,6 +921,7 @@ contract Pyramid {
 
 
 ### 外部函数类型得例子
+**注意**：这里的回调函数符合一个solidity的规范：**允许将 外部函数（external）的类型 作为参数传递**
 
 //Oracle 合约的作用是接收查询请求（query），通过 事件日志 和 回调函数 实现异步通信。
 contract Oracle {
@@ -934,7 +941,7 @@ contract Oracle {
   function query(bytes data, function(bytes memory) external callback) public {
    //将请求数据 data 和回调函数 callback 封装为 Request 结构体，存入数组 requests。 
     requests.push(Request(data, callback));//存储请求，并添加到数组中，下标为 requests.length - 1
-    emit NewRequest(requests.length - 1);// 触发事件，传递数组下标
+    emit NewRequest(requests.length - 1);// 触发事件，传递数组下标到外部
   }//NewRequest事件：为整个“请求-回调”机制提供 唯一标识符 和 链上-链下协同的桥梁。
   
   //requestID：请求的索引（由 NewRequest 事件中的数组下标提供）
@@ -944,6 +951,7 @@ contract Oracle {
     requests[requestID].callback(response);//**结构体中的回调函数的调用**
   }
 }//通过 requestID 找到对应的回调函数，并将 response 传递给它。
+
 
 contract OracleUser {
   Oracle constant oracle = Oracle(0x1234567); // 定义了一个常量 oracle，指向一个已部署的 Oracle 合约实例（地址为 0x1234567），**引用已部署的合约。**
@@ -1022,10 +1030,11 @@ calldata 是以太坊中用于**存储合约函数调用参数**的一种特殊�
 它是只读的、临时的、低 Gas 成本的数据存储位置。
 1. 作用：存储外部调用合约函数时的输入数据（即函数参数）。
 2. 位置：不属于合约存储（Storage），也不占用内存（Memory），而是直接来自交易数据（Transaction Data）。
-3. ✅ 只读（immutable）：不能在函数内修改。✅ 临时性：仅在本次函数调用期间存在，调用结束后消失。
+3. ✅ 只读（immutable）：不能在函数内修改。
+   ✅ 临时性：仅在本次函数调用期间存在，调用结束后消失。
 ✅ Gas 成本低：比 memory 和 storage 更省 Gas。
 
-4. **注意**：calldata **只能用于** 数组（array）、结构体（struct）或映射（mapping） 这样的**复杂类型**。
+1. **注意**：calldata **只能用于** 数组（array）、结构体（struct）或映射（mapping） 这样的**复杂类型**。
 
 但你在 address 这种 基本类型（值类型） 上使用了 calldata，这是不允许的。
 
@@ -1041,7 +1050,7 @@ Gas 成本	⚡ 最低（仅读取）	       💰 中等（临时操作）	   �
 特性	             public函数	                         external 函数
 调用者	     内部（合约内）和外部（EOA/其他合约）	    仅外部（EOA/其他合约）
 Gas 成本	   略高（支持内部调用）	                  更低（专为外部调用优化）
-参数存储	       默认用 memory（动态类型）	       默认用 calldata（更省 Gas）
+参数存储	       **默认用 memory**（动态类型）	       **默认用 calldata**（更省 Gas）
 常见用途	       需要被内外调用的通用函数	          仅需外部调用的函数（如接口暴露）
 
 **关键区别：**
@@ -1187,7 +1196,7 @@ contract C {
     //该函数明确要求传入一个长度为3的 uint 数组，数据位置默认为 memory
 }
 
-数组字面常数是一种定长的 内存memory 数组类型，它的基础类型由其中元素的普通类型决定。
+**数组字面常数是一种定长的 内存memory 数组类型**，它的基础类型由其中元素的普通类型决定。
 
 **注意：**？？？？
 定长的 内存memory 数组，并不能赋值给变长的 内存memory 数组
@@ -2243,17 +2252,19 @@ contract Caller {
 
 
 
-# 接口
+# 接口 Interface
 pragma solidity ^0.8.0;
 // SPDX-License-Identifier: MIT
 
-//接口
+//定义接口协议
 interface ICounter {
     function count()  external view returns (uint);
     function increment() external;
 }
 
-//合约用来实现接口：实现了接口中声明的所有方法（否则会编译错误）
+
+// 实现接口协议
+//Counter合约用来实现接口：实现了接口中声明的所有方法（否则会编译错误）
 contract Counter is ICounter {
     //count 变量是 public 的，所以会自动生成一个同名的 getter 函数（满足 count() 接口要求）
     uint  public count;
@@ -2263,7 +2274,9 @@ contract Counter is ICounter {
     }
 }
 
-//与合约Counter交互
+//定义对外的接口
+//与合约Counter交互，中介功能，帮助其他代码去和 Counter 合约打交道。
+**这个就是真正的接口。**
 contract MyContract {
     function incrementCounter(address  _counter)  external {
         //将传入的参数地址，转换为 ICounter 类型，并调用其 increment() 方法
@@ -2278,30 +2291,22 @@ contract MyContract {
 }
 ### 关键点
 #### 概述
+这段代码实现了 MyContract 对 Counter 合约的标准化调用
 1. 使用接口类型 (ICounter) 进行类型转换，确保调用的合约有相应方法
 2. 这种模式**实现了合约间的解耦**，MyContract 可以与任何实现了 ICounter 的合约交互
 3. **调用外部合约函数会消耗 gas**（特别是会修改状态的函数）
-#### 总结
+
+#### 总结 
 1. 交互本质：MyContract 通过接口类型转换 (ICounter(_counter)) 动态调用目标合约的函数。
 2. 无需重复定义：接口已声明规范，具体实现在目标合约（如 Counter）中完成。
 3. 底层机制：基于 ABI 编码和 EVM 的 CALL 操作码实现跨合约调用。
 
 
 ## 接口当作参数传递
-当你将一个接口类型（如 IBank）作为参数传递时，你实际上是在传递一个实现了该接口的合约的地址。
+当你将一个接口类型（如 IBank）作为参数传递时，你实际上是在**传递**一个实现了该接口的**合约的地址**。
 下面的例子中，有接口定义和参数为接口类型的函数，**实现接口的合约没有提供，自行想象**。
 
-//传入接口类型的参数
-function adminWithdraw(IBank bank) external {
-        require(msg.sender == owner, "Only owner can perform this operation");
-        require(
-            bank.admin() == address(this),
-            "This contract is not the admin of the bank"
-        );
-        bank.withdraw();
-    }
-
-//接口
+//定义接口协议
 interface IBank {
     function deposit() external payable;
 
@@ -2319,6 +2324,49 @@ interface IBank {
     function admin() external view returns (address);
 }
 
+
+//实现接口协议
+contract Bank is IBank {
+    address public admin;
+
+    constructor() {
+        admin = msg.sender;
+    }
+
+    function deposit() external payable override {
+        // 实现存款逻辑
+    }
+
+    function withdraw() external override {
+        // 实现取款逻辑
+    }
+
+    function getTopUsers() external view override returns (address[] memory, uint256[] memory) {
+        // 实现获取顶级用户逻辑
+    }
+
+    function getUserBalance(address user) external view override returns (uint256) {
+        // 实现获取用户余额逻辑
+    }
+
+    function getContractBalance() external view override returns (uint256) {
+        // 实现获取合约余额逻辑
+    }
+
+    function admin() external view override returns (address) {
+        return admin;
+    }
+}
+
+//传入接口类型的参数
+function adminWithdraw(IBank bank) external {
+        require(msg.sender == owner, "Only owner can perform this operation");
+        require(
+            bank.admin() == address(this),
+            "This contract is not the admin of the bank"
+        );
+        bank.withdraw();
+    }
 
 
 
@@ -2526,7 +2574,7 @@ function transfer(address to, uint256 amount) external returns (bool); // 转账
 function approve(address spender, uint256 amount) external returns (bool); // 授权
 //用途：设置授权额度（允许 spender 代表你花费一定数量的代币）。
 //调用者：代币所有者（owner）。
-//允许另一个地址（spender，通常是智能合约）从你的账户中转出最多 amount的代币。
+//允许另一个地址（spender，通常是智能合约）从代币所有者的账户中转出最多 amount的代币。
 //举例
 function approve(address spender, uint256 amount) external returns (bool) {
     allowances[msg.sender][spender] = amount; // 修改授权映射
@@ -2660,6 +2708,482 @@ contracts
 
 希望你能用一段优雅、高效和安全的代码，完成这个挑战。
 
+
+# 1个ERC20代币合约的实现和代币存储合约的实现
+## 代币制造合约
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+//ERC20代币  合约实现
+// transferFrom + 授权（approve）机制的设计,为了实现更灵活的代币交互逻辑,尤其是在智能合约之间的自动化场景中。
+// 核心意义在于解耦代币持有者和代币操作者
+// 传统转账（transfer）：只能由代币持有者（钱包A）直接发起转账，操作权限完全集中在持有者手中。
+// 授权后操作（transferFrom）：持有者（钱包A）可以预先授权另一个地址（如智能合约TokenBank）
+// 在特定额度内支配自己的代币，之后合约TokenBank无需持有者再次签名，即可主动划转代币。
+// 典型应用场景： 
+//去中心化交易所（DEX），借贷协议（如Aave、Compound），自动付款/订阅服务
+
+contract BaseERC20 {
+    string public name; //代币名称
+    string public symbol;  //代币符号
+    uint8 public decimals;  //代币小数位数，通常为18位
+
+    uint256 public totalSupply; //代币总供应量
+
+    mapping (address => uint256) balances; //地址到余额得映射
+
+    mapping (address => mapping (address => uint256)) allowances; //授权额度映射(owner => (spender => amount)) 
+
+    // 转账事件
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    // 授权事件
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor()  {//用于初始化代币基本信息的合约构造函数
+        // write your code here
+        // set name,symbol,decimals,totalSupply
+        name = 'BaseERC20';
+        symbol = 'BERC20';
+        decimals = 18;
+        totalSupply= 100000000 * (10 ** uint256(decimals));
+        balances[msg.sender] = totalSupply;   // 将所有初始代币分配给合约部署者
+        }
+
+    //  该函数用于实现账户存入取出代币数量后,结果得查询
+    function balanceOf(address _owner) public view returns (uint256 balance) {
+        // write your code here
+        return balances[_owner];
+    }
+
+    //  该函数用于转账，通常用于钱包用户转账的场景
+    function transfer(address _to, uint256 _value) public returns (bool success) {
+        // write your code here
+        require(_to != address(0),'Invalid Address');//检查接收地址，若0，则报错并回滚交易
+        require(balances[msg.sender] >= _value,'ERC20: transfer amount exceeds balance');//检查调用该函数得账户地址的余额，若不足,则报错并回滚交易
+        balances[msg.sender] -= _value;
+        balances[_to] += _value;
+
+        emit Transfer(msg.sender, _to, _value);  
+        return true;   
+    }
+
+    //  被授权人调用该函数，传入代币拥有者的地址_from,将授权额度内的金额，按需转给第三个账户地址_to
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
+        // write your code here
+        require(_to != address(0),'Invalid Address');
+        require(balances[_from] >= _value,'ERC20: transfer amount exceeds balance');//_from,身份：代币所有者（owner），即实际转出资金的地址。
+        require(allowances[_from][msg.sender] >= _value,'ERC20: transfer amount exceeds allowance');//msg.sender:调用函数者，身份：被授权者（spender）,检查授权额度
+        
+        balances[_from] -= _value;
+        balances[_to] += _value;
+        allowances[_from][msg.sender] -= _value; // 关键：更新授权额度
+
+        emit Transfer(_from, _to, _value); 
+        return true; 
+    }
+
+    
+    //代币所有者调用，允许另一个地址（_spender，通常是智能合约)从代币所有者的账户中转出最多 amount的代币
+    //在标准的ERC20实现中，确实允许授权（approve）额度大于授权人当前余额，这是设计上的一个重要特性。
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+        // _spender 通常指代合约地址
+        allowances[msg.sender][_spender] = _value; // 代币拥有者调用该函数，将自己的代币授权给_spender账户_value额度
+        emit Approval(msg.sender, _spender, _value); 
+        return true; 
+    }
+
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {   
+        // write your code here
+       return  allowances[_owner][_spender];//返回授权额度
+    }
+}
+
+## 代币存储合约
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./6day_firstToken.sol";
+
+//授权给 TokenBank合约后，它不仅能接收你批准额度的代币，
+//还能在授权范围内自由操作这些代币（比如转给其他地址）
+
+contract TokenBank {
+    // 代币合约地址
+    BaseERC20 public token;
+
+    // 管理员地址
+    address public admin;
+
+    // 记录每个接收代币钱包用户的存款余额
+    mapping(address => uint256) public balances;
+
+    // 事件：存款
+    event Deposited(address indexed user, address indexed to, uint256 amount);
+    // 事件：提款（管理员操作）
+    event Withdrawn(address indexed admin, uint256 amount);
+    // 事件：提款（用户操作）
+    event UserWithdrawn(address indexed user, uint256 amount);
+
+    constructor(address _token) {
+        token = BaseERC20(_token); // 传进合约地址,指向1个已部署的合约
+        admin = msg.sender; // 合约部署者设为管理员
+    }
+
+    // 存入代币，代币持有者调用该函数。 如果函数不涉及原生代币，则不需要 payable。
+    // 授权多少，可存入多少
+    function deposit(uint256 amount) external {
+        //require(amount > 0, "Amount must be greater than 0");
+
+        // 1. 代币拥有者需要先授权（approve）TokenBank 合约可以操作其代币
+        // 2. 然后调用 transferFrom 将代币转入 TokenBank
+        //3.第1个参数是代币转出地址就是代币拥有者，第2个参数是代币接收地址
+        bool success = token.transferFrom(msg.sender, address(this), amount);
+        require(success, "Transfer failed");
+
+        //更新代币持有者存款余额
+        balances[msg.sender] += amount;
+
+        emit Deposited(msg.sender, address(this), amount);
+    }
+
+    // 新增用户提款函数
+    function userWithdraw(uint256 amount) external {
+        require(amount > 0, "Amount must be greater than 0");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+
+        // 先更新状态防止重入攻击
+        balances[msg.sender] -= amount;
+
+        bool success = token.transfer(msg.sender, amount);
+        require(success, "Transfer failed");
+
+        emit UserWithdrawn(msg.sender, amount);
+    }
+
+    // 管理员提取所有代币
+    function withdraw() external {
+        require(msg.sender == admin, "Only admin can withdraw");
+
+        //查询合约代币余额
+        uint256 totalBalance = token.balanceOf(address(this));
+        require(totalBalance > 0, "No tokens to withdraw");
+
+        // 将合约持有的所有代币转给管理员
+        bool success = token.transfer(admin, totalBalance);
+        require(success, "Withdrawal failed");
+
+        emit Withdrawn(admin, totalBalance);
+    }
+
+    // 查询合约当前持有的代币余额
+    function getBankBalance() external view returns (uint256) {
+        return token.balanceOf(address(this));
+    }
+
+    // 查询每个钱包存入的token数量
+    function getDepositRecord(address user) external view returns (uint256) {
+        return balances[user];
+    }
+
+}
+
+
+
+# 函数调用的一些理解
+场景	               调用方式	                       是否回调
+同合约中函数调用	      foo()	                     ❌ 普通调用
+外部合约函数调用	   B(bAddress).foo()	           ❌ 普通调用
+被动触发的函数	   onERC721Received、fallback	       ✅ 回调
+异步事件后的响应	 前端监听合约事件后执行 JS 回调	      ✅ 回调
+
+
+# **普通调用**的一些理解
+方式	                     示例代码	                                  适用场景
+合约类型参数	      function f(Receiver receiver)	               同一文件内合约，需灵活传入实例
+固定地址初始化	    Receiver receiver = Receiver(0x123...)	          已知目标合约地址时
+接口调用	         interface IReceiver { ... }	                 跨文件或未定义合约类型时
+
+
+# **回调**的一些理解
+回调函数 强调的是**被动触发**，而不是主动调用。
+回调（Callback） 是一种编程模式，其核心是：
+“由调用方定义逻辑，由被调用方在特定条件下触发执行”。
+
+- 正向调用：A 调用 B 的函数，B 同步返回结果。
+
+- 回调调用：在 Solidity 中，一个合约（A）调用另一个合约（B）时，B 在执行完成后主动调用 A 的某个函数来返回结果或触发后续操作。
+
+## 关键特征：
+
+1. 控制反转：逻辑控制权从调用方转移到被调用方。
+2. 异步通知：常用于异步操作（如链下数据返回、交易完成通知）。
+3. 解耦设计：调用方无需知道被调用方的具体实现，只需约定接口。
+
+
+
+## solidity受限的执行环境：
+**EVM 无法动态执行未预定义的代码**，
+**所有调用必须指向已部署的合约函数。**
+函数传递的本质：
+传递的是 函数选择器（Selector） + 合约地址，而非函数逻辑本身。
+
+
+**模式**	         **solidity的代码**
+传递内容	        合约地址 + 函数选择器	
+灵活性	       仅限预定义的 external 函数	
+底层实现	         EVM 的 CALL 指令	
+
+
+## 举例1--external 方式的回调
+参见，本文档前面的**OracleUser合约**，其中的回调函数，就是**典型external的回调模式**。
+**解释：**
+函数指针模式回调（Oracle）
+**特点**
+直接传递 函数作为参数（function(bytes) external callback）
+回调函数 动态绑定（可以是任意符合签名的函数）
+适合：灵活的事件响应，如预言机请求
+
+
+## 举例2--接口约定（标准化的回调）
+这段代码展示了一个 Solidity 合约间通过接口进行交互的经典模式，主要由两部分组成：回调接口定义和处理器合约。
+
+// 定义接口
+interface ICallback {
+    function handleResult(bytes memory data) external;
+}
+
+// 实现接口
+contract MyApp is ICallback {
+    function startProcess(address processorAddr) public { // ✅ 动态传入地址
+    Processor processor = Processor(processorAddr); // 转换为合约实例
+    processor.process(address(this), "inputData");
+}
+    
+    function handleResult(bytes memory data) external override {
+        // 只有 Processor 合约能调用此方法
+        require(msg.sender == address(processor));
+        // 使用结果...
+    }
+}
+
+
+// 引用接口
+//任何想要接收 Processor 合约处理结果的合约，都必须实现这个接口（即包含一个匹配的 handleResult 函数）。
+//callbackAddr：一个合约地址，该合约必须实现 ICallback 接口。input：二进制输入数据（待处理的数据）。
+//将 callbackAddr 地址强制转换为 ICallback 接口类型。通过 ICallback 接口回调指定的合约。
+contract Processor {
+    function process(address callbackAddr, bytes memory input) public {
+        // 处理逻辑...(会对 input 进行处理，生成 result。)
+        ICallback(callbackAddr).handleResult(result); // 通过接口调用
+    }
+}
+
+**参数流动图示**：
+用户钱包
+  │
+  ↓ (参数: processorAddr)
+MyApp.startProcess(processorAddr)
+  │
+  ↓ (参数: callbackAddr=MyApp自身地址, input="inputData")
+Processor.process(callbackAddr, input)
+  │
+  ↓ (参数: data=result)
+MyApp.handleResult(data) ← 回调
+
+
+
+**优势：**
+强制实现方遵守接口规范（如 ERC721 的 onERC721Received）。
+
+**特点**
+通过 接口标准化（ICallback）定义回调函数
+
+使用 合约地址 触发回调（ICallback(callbackAddr).handleResult()）
+
+适合：合约间解耦，需要严格类型检查的场景
+
+
+
+## **举例3**：ERC721 代币转账回调 
+
+//继承了 ERC721 抽象合约的 MyNFT 合约，用于管理NFT的创建、转移和所有权等功能。
+contract MyNFT is ERC721 {
+    function safeTransferFrom(// safeTransferFrom标准中定义的一个方法，用于安全地转移 NFT
+        address from,       //表示NFT的当前所有者地址。
+        address to,         //表示NFT的新所有者地址。
+        uint256 tokenId,    //表示要转移的NFT的唯一标识符（Token ID）。
+        bytes memory data   //可选数据，通常用于在转移时携带额外信息。
+    ) 
+    public override  //_safeTransfer 方法：这是 ERC721 合约内部的一个方法,
+    //覆盖了父合约ERC721中同名的safeTransferFrom方法,行为将按照这里的实现来执行.
+    {
+      //ERC721合约内部的一个私有方法,实现了NFT的安全转移逻辑。
+        _safeTransfer(from, to, tokenId, data);
+        // 检查from是否是NFT的当前所有者，并确保to地址是有效的
+        // 如果to是一个合约地址，它会调用to合约的onERC721Received方法，以确保目标合约能够正确处理接收到的NFT。
+        // 如果目标地址是合约，会触发其 `onERC721Received` 回调
+    }
+}
+
+// to合约
+//用于接受 NFT 转账的合约，实现了 onERC721Received 方法
+contract Receiver {
+    function onERC721Received(
+        address operator, // 转账操作者
+        address from,  // 转出地址
+        uint256 tokenId,  // 转出的 NFT 的唯一标识符
+        bytes memory data  // 可选数据
+    ) external returns (bytes4) {
+        // 处理接收到的 NFT
+        return this.onERC721Received.selector;
+    }
+}
+
+
+**参数流动图示**
+用户钱包
+  │
+  ↓ (调用并传入参数: from, to, tokenId, data)
+MyNFT.safeTransferFrom(from, to, tokenId, data)
+  │
+  ↓ (内部调用，传递相同参数)
+ERC721._safeTransfer(from, to, tokenId, data)
+  │
+  ↓ (如果 to 是合约地址，触发回调)
+Receiver.onERC721Received(operator, from, tokenId, data)
+  │
+  ↓ (返回选择器: 0x150b7a02)
+ERC721 完成转账
+
+**关键点**
+用户钱包 → MyNFT → ERC721 → (to是合约?) → Receiver
+                │                   │
+                └─ (to是EOA?) ──────┘
+EOA（外部账户）：直接完成转账，无回调。
+
+合约地址：必须通过回调验证。
+
+
+#  合约工厂模式
+contract Factory {
+    function createAndCall(string memory name) external returns (string memory) {
+        Receiver receiver = new Receiver(); // 部署新实例
+        Caller caller = new Caller();
+        return caller.callReceiver(receiver, name); // 传入新实例
+    }
+}
+工厂合约动态创建 Receiver 和 Caller，并自动传递实例。
+
+
+
+
+## 结合前面的所学，代币转入合约进行存储和处理，如果转错会怎么样？
+**为什么代币或者eth，转入错误的合约地址，会导致代币或者eth锁死呢？**
+资产锁死的本质是：接收方缺乏处理或释放资产的逻辑，而区块链的不可逆性放大了这一风险。
+理解合约的“被动性”是避免此类问题的关键。
+
+
+### 经典锁死案例
+(1) 误转入黑洞地址
+如将代币发送到 0x000...000（零地址），该地址不是合约，但无法被任何人控制。
+
+(2) 转入未部署的合约地址
+地址符合格式，但未部署合约，代币会永久丢失（因为不存在代码可执行）。
+
+
+### 如何避免？
+#### ETH 转账：
+
+确保目标合约有 receive() 或 fallback() 函数。
+
+测试小额转账。
+
+#### 代币转账：
+
+使用 safeTransferFrom（NFT）或检查目标合约是否支持代币标准。
+
+#### 合约开发：
+
+实现紧急提款函数（如 emergencyWithdraw）。
+
+避免硬编码权限。
+
+
+## ERC777 之NFT的安全转账
+### ERC20 问题
+
+• 转账无法携带额外的信息。
+
+• 没有转账回调:
+
+• 依靠:授权、授权、授权
+
+• 误入合约被锁死。
+
+### ERC777:
+
+• ERC777:send(dest, value, data)
+
+• 防止误入合约被锁死。
+
+• 即便是普通地址也可以实现回调(如何实现的呢?)
+
+• ERC777 通过 全局注册表合约( ERC1820)的注册监听回调
+
+import "@openzeppelin/contracts/token/ERC777/ERC777.sol";
+
+
+
+#### 示例
+contract MyERC777 is ERC777 {
+
+constructor() ERC777("MY777", "M777", new address[](0))
+{
+_mint(msg.sender, 1000 * 10 ** 18, "", "");
+}
+}
+
+
+function send(from, to, amount ...) {
+_callTokensToSend(operator, from, to, amount,...);
+
+_move(operator, from, to, amount, userData, operatorData);
+
+_callTokensReceived(operator, from, to, amount, userData,...);
+
+}
+
+// 检查是否有注册回调,有的话就调用一下
+function _callTokensToSend( operator, from, to, amount) private {
+address implementer = _ERC1820_REGISTRY.getInterfaceImplementer(from,
+_TOKENS_SENDER_INTERFACE_HASH);
+if (implementer != address(0)) {
+IERC777Sender(implementer).tokensToSend(operator, from, to, amount,..);
+}
+}
+
+#### 源码地址：
+https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.9/contracts/token/ERC777/ERC777.sol
+
+
+## ERC1363 可支付的回调代币标准
+ERC1363 是 ERC20 的扩展标准，在代币转账后自动触发接收合约的逻辑，解决了 ERC20 代币转账后需要手动通知接收方的问题（类似 ERC721 的 safeTransferFrom 回调机制，但适用于可互换代币）。
+
+
+## ERC20 的一些坑
+• 一些 Token 在实现时,转账失败没有回退,而是返回 false。
+
+    • 导致,合约以为转账成功了,但却没有
+
+    • 如:ZRX: https://etherscan.io/address/0xe41d2489571d322189246dafa5ebde1f4699f498#code
+
+• 怎么办? 加一个返回值判断么,然而有些 Token 没有返回值。
+
+    • 如: USDT: https://etherscan.io/address/0xdac17f958d2ee523a2206206994597c13d831ec7#code
+
+• 那该怎么办?
+
+    • ERC20 转账应该总是使用Openzeplin 的 SafeERC20 safeTransfer:
 
 
 

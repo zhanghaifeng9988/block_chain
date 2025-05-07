@@ -231,30 +231,6 @@
 				],
 				"stateMutability": "nonpayable",
 				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_to",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "_value",
-						"type": "uint256"
-					}
-				],
-				"name": "transferWithCallback",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "success",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "nonpayable",
-				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -270,7 +246,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/9day_secondToken.sol": "BaseERC20"
+			"study_way/src/6day_firstToken.sol": "BaseERC20"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -284,20 +260,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x79202a952d9cd77c646cef6789ca3a30d86065c1359fd5252e4dd0500cf7fb26",
+		"study_way/src/6day_firstToken.sol": {
+			"keccak256": "0xfc1b483e375940348471d450c171d194635d789cc6ef875b625c16eb7ec190af",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://4035d11b7e303f8ab736adb998e080b44b15f18b8845913a2d3004a4cf3048d0",
-				"dweb:/ipfs/QmTJYreUq6EQNjMDAGRdNpRnUdrCX6pwiavpASCiaU87T7"
-			]
-		},
-		"study_way/src/utils/checkAddress.sol": {
-			"keccak256": "0x9c3238a48b8d77662f1bd33fff690757c7c7f79fc3b626717b8b8a63ce764bf1",
-			"license": "MIT",
-			"urls": [
-				"bzz-raw://29ccc6ce4297c4056e85000c73bf07f130080a119fe4a50f434f3be6b603d7dc",
-				"dweb:/ipfs/QmbKhzZvf53XbKhjy9zsBmHiPWzGFiszJStzTD5U4mwAfD"
+				"bzz-raw://586714bfeb0b6a7a8a1e6b210c3f6735b433c882d6431b508ca39fa77739b1ff",
+				"dweb:/ipfs/QmUGzHPhyhmyrFyh3fu4ZWpxhZuVqV6WyUfuL9qtGV9yu5"
 			]
 		}
 	},

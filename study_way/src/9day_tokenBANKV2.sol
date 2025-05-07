@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "./9day_secondToken.sol"; // 引入扩展的ERC20合约
 import "./6day_tokenBank.sol"; //
 
-contract TokenBankV2 is TokenBank {
+contract TokenBankV2 is TokenBank, IERC20Receiver{
     // 事件：通过transferWithCallback存款
     event DepositedWithCallback(address indexed user, uint256 amount);
     
@@ -33,13 +33,10 @@ contract TokenBankV2 is TokenBank {
      * @param from 代币来源地址
      * @param amount 代币数量
      */
-    function tokensReceived(address from, uint256 amount) external {
+ function tokensReceived(address from, uint256 amount) external override returns (bytes4) {
         require(msg.sender == address(token), "Only token contract can call");
-        require(from != address(0), "Invalid sender address");
-        
-        // 更新存款余额
         balances[from] += amount;
-        
         emit Deposited(from, address(this), amount);
+        return this.tokensReceived.selector; // 返回函数选择器
     }
 }

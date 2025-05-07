@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./utils/checkAddress.sol";
 
 interface IERC20Receiver {
-    function tokensReceived(address sender, uint256 amount) external;
+    function tokensReceived(address sender, uint256 amount) external returns (bytes4);
 }
 
 contract ExtendERC20 {
@@ -88,29 +88,23 @@ contract ExtendERC20 {
     // transferWithCallback 转账函数 ，有hook 功能
     // Hook功能 可以理解为在某个核心操作流程中插入的“钩子”，允许在特定节点触发外部自定义逻辑。
     // 常用于扩展合约的交互性，尤其是在代币转账、状态变更等关键操作前后执行附加逻辑。
-    function transferWithCallback(address _to, uint256 _value)
-        public
-        returns (bool)
-    {
-        require(_to != address(0), "Invalid Address");
-        require(
-            balances[msg.sender] >= _value,
-            "ERC20: transfer amount exceeds balance"
-        );
+    function transferWithCallback(address _to, uint256 _value) public returns (bool) {
+    require(_to != address(0), "Invalid Address");
+    require(balances[msg.sender] >= _value, "ERC20: transfer amount exceeds balance");
 
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
+    balances[msg.sender] -= _value;
+    balances[_to] += _value;
+    emit Transfer(msg.sender, _to, _value);
 
-        if (_to.isContract()) {
-            try IERC20Receiver(_to).tokensReceived(msg.sender, _value) {
-                // 回调成功
-            } catch {
-                revert("ERC20: tokensReceived callback failed");
-            }
+    if (_to.isContract()) {
+        try IERC20Receiver(_to).tokensReceived(msg.sender, _value) returns (bytes4 retval) {
+            require(retval == IERC20Receiver.tokensReceived.selector, "Invalid callback");
+        } catch {
+            revert("ERC20: tokensReceived callback failed");
         }
-        return true;
     }
+    return true;
+}
 
     // 辅助函数，检查地址是否为合约
 

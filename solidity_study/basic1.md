@@ -3188,3 +3188,15 @@ ERC1363 是 ERC20 的扩展标准，在代币转账后自动触发接收合约�
 
 
 
+# 第1个ERC20代币合约
+sepolia 测试网
+地址：0x7C950AFA349F22F9a6E2d3Be48d711CacAa7c3D4
+浏览器查看链接：https://sepolia.etherscan.io/tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
+Blockscout查看连接：https://eth-sepolia.blockscout.com//tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
+
+**交易设定，不动，先留下内容记录**
+https://uniswap-testnet.sourcehat.io/#/add/ETH/0x7C950AFA349F22F9a6E2d3Be48d711CacAa7c3D4/500
+![1746547849832](image/basic1/1746547849832.png)
+
+**交易记录查询**
+https://sepolia.etherscan.io/tx/0x4bcc77ef3e078c0f024c53a5a201ff0733b91170e20062522f6a7effc4f04ffc

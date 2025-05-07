@@ -215,7 +215,13 @@
 					}
 				],
 				"name": "tokensReceived",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "bytes4",
+						"name": "",
+						"type": "bytes4"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -298,19 +304,19 @@
 			]
 		},
 		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0xdecc3cd9910b84da25597143871a94ec282d8c555c6d83ab184d04a692f057c7",
+			"keccak256": "0x812784a25d7c4619d900879f7f8faf5b32a3c4481eb4231f6b9a9c0eaa8b640e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e73ebb70a41a712f7975ca2ca096f4de58a5e15cf554fbb31c697cfc9d184d35",
-				"dweb:/ipfs/QmR3BEHKLYsLLobGq1L8uqTc3ziSdTJ8Q8choNFsy4z7oN"
+				"bzz-raw://1c196134a954268260bbde1402a51a003b19821b1a9e3bac01940c5a8928e0a8",
+				"dweb:/ipfs/QmWRdGAcMz7on7vMaDhXHWsMsTEAKCE2Gb4fy857zPrpRD"
 			]
 		},
 		"study_way/src/9day_tokenBANKV2.sol": {
-			"keccak256": "0x16c217a2633de2ac83ce9a2967ba5162eda0f9a6637ab13dc55afaaf13088db1",
+			"keccak256": "0xa9a7dbdb31349cfffaaad681410ce12e450a7f8412debb8cad46e5cff1ea9a5c",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c5a0f8bd2d7a8fa14d3c7eb77e5f368a8646e781987ff4ee7a6127d6065bf60b",
-				"dweb:/ipfs/QmZ3SBGqAyX44un9QacyvrULvGeEWYfYYNAeEpbsVbWsWy"
+				"bzz-raw://5370105e505e483b9e53244b2c9f3af547259b590eaffbc56c40489b745d0603",
+				"dweb:/ipfs/QmY77zNLJ9UWV6x3uNXCFoX3717qn6osQXKU3kFkJdvibY"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

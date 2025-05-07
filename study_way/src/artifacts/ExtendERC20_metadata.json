@@ -285,11 +285,11 @@
 	},
 	"sources": {
 		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x44b94f8f51b651f08acfab8fceb224fa7d6a7b9ef6c02b164e516efa62461b86",
+			"keccak256": "0x812784a25d7c4619d900879f7f8faf5b32a3c4481eb4231f6b9a9c0eaa8b640e",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://aa4314e443eddc4035df5ed038ac620e99cb19bfa7573fadf352c3f7c0efa07c",
-				"dweb:/ipfs/QmSsGGVztfAD9NkmcFyV6ZvRvwweMs2UjyG5GrdGeyTyvq"
+				"bzz-raw://1c196134a954268260bbde1402a51a003b19821b1a9e3bac01940c5a8928e0a8",
+				"dweb:/ipfs/QmWRdGAcMz7on7vMaDhXHWsMsTEAKCE2Gb4fy857zPrpRD"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

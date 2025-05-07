@@ -218,11 +218,11 @@
 	},
 	"sources": {
 		"study_way/src/6day_firstToken.sol": {
-			"keccak256": "0x0f4337b261d301ce33a1cf463cc1cd665532a23da083e1e29ff68de629a8b160",
+			"keccak256": "0xfc1b483e375940348471d450c171d194635d789cc6ef875b625c16eb7ec190af",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://9a17c70e9a3309c6f3d9b209c5e978f6979ac94498392b9450631ad697ccb8cf",
-				"dweb:/ipfs/QmfS8kFHv96f3AqL52qxNU1MaqmbpgsjkdEBz7xvc4Nj1Z"
+				"bzz-raw://586714bfeb0b6a7a8a1e6b210c3f6735b433c882d6431b508ca39fa77739b1ff",
+				"dweb:/ipfs/QmUGzHPhyhmyrFyh3fu4ZWpxhZuVqV6WyUfuL9qtGV9yu5"
 			]
 		},
 		"study_way/src/6day_tokenBank.sol": {

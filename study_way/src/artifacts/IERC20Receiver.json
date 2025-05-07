@@ -67,7 +67,13 @@
 				}
 			],
 			"name": "tokensReceived",
-			"outputs": [],
+			"outputs": [
+				{
+					"internalType": "bytes4",
+					"name": "",
+					"type": "bytes4"
+				}
+			],
 			"stateMutability": "nonpayable",
 			"type": "function"
 		}

@@ -10,29 +10,14 @@ contract TokenBankV2 is TokenBank, IERC20Receiver{
     event DepositedWithCallback(address indexed user, uint256 amount);
     
     constructor(address _token) TokenBank(_token) {}
-    
-    /**
-     * @dev 通过transferWithCallback存款
-     * @param amount 存款金额
-     */
-    function depositWithCallback(uint256 amount) external {
+
+/*     function depositWithCallback(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
-        
-        // 使用transferWithCallback将代币转入合约
-        bool success = ExtendERC20(address(token)).transferWithCallback(address(this), amount);
-        require(success, "Transfer with callback failed");
-        
-        // 更新存款余额
-        balances[msg.sender] += amount;
-        
-        emit DepositedWithCallback(msg.sender, amount);
-    }
+        require(ExtendERC20(address(token)).transferWithCallback(address(this), amount, "Transfer failed");
+        // emit DepositedWithCallback(msg.sender, amount); // 仅触发事件，余额在回调中更新
+    } */
     
-    /**
-     * @dev 实现tokensReceived回调接口
-     * @param from 代币来源地址
-     * @param amount 代币数量
-     */
+
  function tokensReceived(address from, uint256 amount) external override returns (bytes4) {
         require(msg.sender == address(token), "Only token contract can call");
         balances[from] += amount;

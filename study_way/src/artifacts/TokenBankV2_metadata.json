@@ -144,19 +144,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					}
-				],
-				"name": "depositWithCallback",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "getBankBalance",
 				"outputs": [
@@ -248,21 +235,7 @@
 		],
 		"devdoc": {
 			"kind": "dev",
-			"methods": {
-				"depositWithCallback(uint256)": {
-					"details": "通过transferWithCallback存款",
-					"params": {
-						"amount": "存款金额"
-					}
-				},
-				"tokensReceived(address,uint256)": {
-					"details": "实现tokensReceived回调接口",
-					"params": {
-						"amount": "代币数量",
-						"from": "代币来源地址"
-					}
-				}
-			},
+			"methods": {},
 			"version": 1
 		},
 		"userdoc": {
@@ -304,19 +277,19 @@
 			]
 		},
 		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x812784a25d7c4619d900879f7f8faf5b32a3c4481eb4231f6b9a9c0eaa8b640e",
+			"keccak256": "0x8c8c4dca72a559f32e069540f3ab627a920f63390734f20bce35246e8dec4d91",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://1c196134a954268260bbde1402a51a003b19821b1a9e3bac01940c5a8928e0a8",
-				"dweb:/ipfs/QmWRdGAcMz7on7vMaDhXHWsMsTEAKCE2Gb4fy857zPrpRD"
+				"bzz-raw://a1a0251694641cc53f8d04ba48c171e8a6df7bc31a170db6313ccc4da952d58d",
+				"dweb:/ipfs/QmRWtDvDou9ka4M8GnpuWKicCdKEFRv4yP1Gs27WE72d7d"
 			]
 		},
 		"study_way/src/9day_tokenBANKV2.sol": {
-			"keccak256": "0xa9a7dbdb31349cfffaaad681410ce12e450a7f8412debb8cad46e5cff1ea9a5c",
+			"keccak256": "0xadc9155a53ae72075d0ec2f3ef6c97117dc73053a27aaa6b3d4cce07fb0ec696",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5370105e505e483b9e53244b2c9f3af547259b590eaffbc56c40489b745d0603",
-				"dweb:/ipfs/QmY77zNLJ9UWV6x3uNXCFoX3717qn6osQXKU3kFkJdvibY"
+				"bzz-raw://0dbff822fc61ce2d747fbe2b46007d101d43827a3ae9da362ac01f1c895a8010",
+				"dweb:/ipfs/Qma6thpKwiob2c2ZKdBGsPyjVwqj2jXfv7CtH48xno6oPa"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

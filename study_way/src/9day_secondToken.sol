@@ -96,7 +96,7 @@ contract ExtendERC20 {
     balances[_to] += _value;
     emit Transfer(msg.sender, _to, _value);
 
-    if (_to.isContract()) {
+    if (_to.isContract()) {// 检查接收方是否是合约（而非普通地址）
         try IERC20Receiver(_to).tokensReceived(msg.sender, _value) returns (bytes4 retval) {
             require(retval == IERC20Receiver.tokensReceived.selector, "Invalid callback");
         } catch {

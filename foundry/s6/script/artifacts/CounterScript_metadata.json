@@ -1,0 +1,134 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "counter",
+				"outputs": [
+					{
+						"internalType": "contract Counter",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "run",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "setUp",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "vm",
+				"outputs": [
+					{
+						"internalType": "contract Vm",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"foundry/s6/script/Counter.s.sol": "CounterScript"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"forge-std/Script.sol": {
+			"keccak256": "0x24ed91a7f3ba4ee9c82940f0d2d9d71fc4adfb98b3874715cb565e92574f7f11",
+			"license": "Unlicense",
+			"urls": [
+				"bzz-raw://9dc5e2d582d2d55f1b62eb156848eb572b7e8bde6e22dc6d30b84a236967a043",
+				"dweb:/ipfs/QmPuggLovwKfXN6B7GkKnCjgAotXKFVkEvei79BEkKnKML"
+			]
+		},
+		"forge-std/Vm.sol": {
+			"keccak256": "0xbed7e29b63ea925a59762400e383856c62184e00123a7b90937423c143abc02f",
+			"license": "Unlicense",
+			"urls": [
+				"bzz-raw://9f41c29f491626269bd31692f24ed1fb15e9a81b31141c19595dfc41bd71edf0",
+				"dweb:/ipfs/QmRHwpxs4RoMEyLwQDzQQMFjEDNfCDWp1VhtVsKLsXUFYM"
+			]
+		},
+		"forge-std/console.sol": {
+			"keccak256": "0x91d5413c2434ca58fd278b6e1e79fd98d10c83931cc2596a6038eee4daeb34ba",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://91ccea707361e48b9b7a161fe81f496b9932bc471e9c4e4e1e9c283f2453cc70",
+				"dweb:/ipfs/QmcB66sZhQ6Kz7MUHcLE78YXRUZxoZnnxZjN6yATsbB2ec"
+			]
+		},
+		"forge-std/console2.sol": {
+			"keccak256": "0xbeb823fcdb356244a83aaccdf828ad019ecc1ffaa3dff18e624fc6d5714ea671",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4cbe9400340e5f9ec55e2aff3bad1c15fa3afbbe37e80800e6f3fed2ad26854f",
+				"dweb:/ipfs/QmdJBABsuXkvWxVzEyGXsTE3vyfBPXDdw5xvvtUz3JeoYW"
+			]
+		},
+		"foundry/s6/lib/forge-std/src/console.sol": {
+			"keccak256": "0xe3a5b7058d5752c36d2b15c0a1c16f6e95275eab8b3846aa0e90850e0597d577",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://946323b2e53e9c2c150b7ca125bb0e5a5cc4837b1efe56e5ded67bea19f684d6",
+				"dweb:/ipfs/Qmaan797WKYbdjYAiqdrpwHGQdFKvHAuraFhUiyZ5BjqcN"
+			]
+		},
+		"foundry/s6/script/Counter.s.sol": {
+			"keccak256": "0xf5aed06cf8dbfb65ba6e187378c86e5324dd9cd4fa4297194b3c75750c2b9172",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://5363cc36d608cff018e1cfdb32b60c24d444e2c26a0d03eea95d092bdb4f2dda",
+				"dweb:/ipfs/QmeM37Gwy3ReXX2Fj7EXFUSeKbAtR9rSETAbyWZJgGY8j2"
+			]
+		},
+		"foundry/s6/src/Counter.sol": {
+			"keccak256": "0x47afc6238597102d5a065fde00cbc55ce0bd135afa24cd5192d657ae86e5fc21",
+			"license": "UNLICENSED",
+			"urls": [
+				"bzz-raw://69d6fc5229d321699918b945ca4137a0db23cfcb5f5b7c7781749ca4e79bcb4f",
+				"dweb:/ipfs/QmSV25ytojU8PisPjswizvSpcg6GWwxLNuB3Z56wN6FnBT"
+			]
+		}
+	},
+	"version": 1
+}

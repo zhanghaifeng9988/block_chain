@@ -83,7 +83,7 @@ forge init [project_name]
    forge build --match-path <文件路径>
 
 **举例：**
-forge build --match-path src/Counter.sol
+forge build  src/Counter.sol
 
 **举例：**forge build 执行情况
 forge build
@@ -145,22 +145,6 @@ contract CounterTest is Test {
         assertEq(counter.number(), x);
     }
 }
-
-### Forge 合约测试
-
-执行测试用例:
-forge test  全部测试用例
-
-forge  test test/CounterTest.t.sol    指定测试用例文件
-
--v   显示详细的测试用例执行信息
---mt  显示慢速测试用例
---st  显示失败的测试用例
-
-forge test --match-path src/Counter.sol  只测试指定合约文件
-
-forge test test/测试用例  --mt  被测试合约   -vv
-
 
 
 ## 合约部署
@@ -280,9 +264,7 @@ function run() public {
 }
 
 **举例：**
-forge script script/Counter.s.sol --private-key
-0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7b
-f4f2ff80 --rpc-url http://localhost:8545 --broadcast
+forge script script/Counter.s.sol --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545 --broadcast
 
 # Forge 管理依赖库
 
@@ -429,3 +411,42 @@ Etherscan 的 API Key 主要用于通过程序化方式与 Etherscan 提供的�
 
 **验证构造函数参数**
 如果合约构造函数需要参数（如代币名称 name 和符号 symbol），API Key 用于提交这些参数的编码数据，确保 Etherscan 能正确解析。
+
+
+# .gitmodules 文件
+1. 是 Git 子模块的配置文件，用于在 Git 项目中管理第三方依赖库。
+依赖库管理：通过 Git 子模块（Submodule）的方式引入外部代码库（如 forge-std 和 OpenZeppelin）。
+2. (1) forge-std 子模块
+[submodule "foundry/s6/lib/forge-std"]
+    path = foundry/s6/lib/forge-std       # 本地存储路径
+    url = https://github.com/foundry-rs/forge-std  # 远程仓库地址
+
+用途：Foundry 官方提供的标准测试库，包含：
+测试基类（Test.sol）
+作弊码（vm 方法，如 vm.prank）
+断言工具（assertEq、assertTrue 等）。
+
+
+
+# 5月8日测试
+## Forge 合约测试
+### 为你的合约生成函数消耗的 Gas 报告
+forge test test/Counter.t.sol  -vv --gas-report
+
+
+
+执行测试用例:
+forge test  全部测试用例
+
+forge  test test/CounterTest.t.sol    指定测试用例文件
+
+-v   显示详细的测试用例执行信息
+--mt  显示慢速测试用例
+--st  显示失败的测试用例
+
+forge test --match-path src/Counter.sol  只测试指定合约文件
+
+forge test test/测试用例  --mt  被测试合约   -vv
+
+
+forge test --match-path test/MyTest.t.sol --match-test "testMintFunction"

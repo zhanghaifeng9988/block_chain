@@ -16,6 +16,11 @@
 						"internalType": "uint256",
 						"name": "amount",
 						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "data",
+						"type": "bytes"
 					}
 				],
 				"name": "tokensReceived",
@@ -43,7 +48,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/9day_secondToken.sol": "IERC20Receiver"
+			"study_way/src/9day_thridToken.sol": "IERC20Receiver"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -57,12 +62,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x8c8c4dca72a559f32e069540f3ab627a920f63390734f20bce35246e8dec4d91",
+		"study_way/src/9day_thridToken.sol": {
+			"keccak256": "0xfddf426b7a90aad0e4db91502039799dedb33da2895c453149528f2bb85edafd",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a1a0251694641cc53f8d04ba48c171e8a6df7bc31a170db6313ccc4da952d58d",
-				"dweb:/ipfs/QmRWtDvDou9ka4M8GnpuWKicCdKEFRv4yP1Gs27WE72d7d"
+				"bzz-raw://f337506fa3bff86b56b4ab5744fc10efd0dd30e1887628cc95e519ede0748997",
+				"dweb:/ipfs/QmbtduTM5cVJEPHRbkRyRdBvmfxZE7B3yQTxoJZPysqa2f"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

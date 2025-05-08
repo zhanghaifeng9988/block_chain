@@ -255,6 +255,35 @@
 				],
 				"stateMutability": "nonpayable",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_to",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "_value",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "_data",
+						"type": "bytes"
+					}
+				],
+				"name": "transferWithData",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -270,7 +299,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/9day_secondToken.sol": "ExtendERC20"
+			"study_way/src/9day_thridToken.sol": "ExtendERC20"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -284,12 +313,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"study_way/src/9day_secondToken.sol": {
-			"keccak256": "0x8c8c4dca72a559f32e069540f3ab627a920f63390734f20bce35246e8dec4d91",
+		"study_way/src/9day_thridToken.sol": {
+			"keccak256": "0x1dd4c9e9a1fc360e9628a105a6efbab542b27ef031957830283da9fcb2113fb5",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a1a0251694641cc53f8d04ba48c171e8a6df7bc31a170db6313ccc4da952d58d",
-				"dweb:/ipfs/QmRWtDvDou9ka4M8GnpuWKicCdKEFRv4yP1Gs27WE72d7d"
+				"bzz-raw://7211df53c0c2cda5eb094a28dfbd81e8d41475c60d88fe52bdc3b81345aeb91a",
+				"dweb:/ipfs/QmcbEhRTxUhCH1C21Uza8hZz3BQ2PTkMeEg9vajNzWAgBs"
 			]
 		},
 		"study_way/src/utils/checkAddress.sol": {

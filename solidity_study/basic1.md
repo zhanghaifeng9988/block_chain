@@ -3194,9 +3194,11 @@ sepolia 测试网
 浏览器查看链接：https://sepolia.etherscan.io/tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
 Blockscout查看连接：https://eth-sepolia.blockscout.com//tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
 
-**交易设定，不动，先留下内容记录**
-https://uniswap-testnet.sourcehat.io/#/add/ETH/0x7C950AFA349F22F9a6E2d3Be48d711CacAa7c3D4/500
-![1746547849832](image/basic1/1746547849832.png)
+**流动性创建结果**
+https://sepolia.etherscan.io/tx/0xa5816ebd5dfb62db8a809fd04879e3eb4868f0c9a5b07b0ce3320675b4e30bd3
 
-**交易记录查询**
-https://sepolia.etherscan.io/tx/0xdef039046b312e9c8c5ddb819174b19ec089178c490e6017cb655632a1204f97
+**NFT生成记录**
+https://sepolia.etherscan.io/address/0x44f08ed7d8f63b345f0fc512aecfaa4f16831643#nfttransfers
+
+**兑换交易记录**
+https://sepolia.etherscan.io/tx/0x549c25a9e7aeb5636f3e63e7b39be51c8a8a1c48cae920621f2f8c4a7f2f5517

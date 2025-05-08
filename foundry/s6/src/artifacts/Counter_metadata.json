@@ -1,0 +1,87 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "increment",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "number",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "newNumber",
+						"type": "uint256"
+					}
+				],
+				"name": "setNumber",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"foundry/s6/src/Counter.sol": "Counter"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"foundry/s6/lib/forge-std/src/console.sol": {
+			"keccak256": "0xe3a5b7058d5752c36d2b15c0a1c16f6e95275eab8b3846aa0e90850e0597d577",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://946323b2e53e9c2c150b7ca125bb0e5a5cc4837b1efe56e5ded67bea19f684d6",
+				"dweb:/ipfs/Qmaan797WKYbdjYAiqdrpwHGQdFKvHAuraFhUiyZ5BjqcN"
+			]
+		},
+		"foundry/s6/src/Counter.sol": {
+			"keccak256": "0x47afc6238597102d5a065fde00cbc55ce0bd135afa24cd5192d657ae86e5fc21",
+			"license": "UNLICENSED",
+			"urls": [
+				"bzz-raw://69d6fc5229d321699918b945ca4137a0db23cfcb5f5b7c7781749ca4e79bcb4f",
+				"dweb:/ipfs/QmSV25ytojU8PisPjswizvSpcg6GWwxLNuB3Z56wN6FnBT"
+			]
+		}
+	},
+	"version": 1
+}

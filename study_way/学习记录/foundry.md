@@ -1,29 +1,28 @@
 # 安装 foundry
+
 ## 安装 mingw-w64
+
 1. 下载 mingw-w64-install.exe
-https://link.zhihu.com/?target=https%3A//sourceforge.net/projects/mingw-w64/files/
-
+   https://link.zhihu.com/?target=https%3A//sourceforge.net/projects/mingw-w64/files/
 2. 设置环境变量
-下载好后，解压到任意一个目录，然后右键 “此电脑–>属性–>高级系统设置–>环境变量“，设置 PATH 变量
-![1746432159858](image/foundry/1746432159858.png)
-注：这里的环境变量根据自身电脑的具体路径来设置
-
+   下载好后，解压到任意一个目录，然后右键 “此电脑–>属性–>高级系统设置–>环境变量“，设置 PATH 变量
+   ![1746432159858](image/foundry/1746432159858.png)
+   注：这里的环境变量根据自身电脑的具体路径来设置
 3. 检查是否安装成功
-win + R 键输出 cmd 打开命令行，然后输入 gcc -v
-![1746432189532](image/foundry/1746432189532.png)
-当出现这种提示时，表明 mingw-w64 安装成功
-
-
+   win + R 键输出 cmd 打开命令行，然后输入 gcc -v
+   ![1746432189532](image/foundry/1746432189532.png)
+   当出现这种提示时，表明 mingw-w64 安装成功
 
 ## 安装  仅限windows系统
+
 详细安装步骤
+
 1. 下载 rustup.rs
 2. rustup-init安装包
-https://win.rustup.rs/x86_64
-
-1. 下载好打开之后，我们会看到
-2. ![1746432058162](image/foundry/1746432058162.png)
-3. 在 Windows 开发 Rust，需要安装 C++ Build Tools 等工具，而 C++ Build Tools 被 Visual Studio 绑定了，要下载 C++ Build Tools 就必须下载 Visual Studio，但是 Visual Studio 安装包非常庞大，而且下载速度时好时差。
+   https://win.rustup.rs/x86_64
+3. 下载好打开之后，我们会看到
+4. ![1746432058162](image/foundry/1746432058162.png)
+5. 在 Windows 开发 Rust，需要安装 C++ Build Tools 等工具，而 C++ Build Tools 被 Visual Studio 绑定了，要下载 C++ Build Tools 就必须下载 Visual Studio，但是 Visual Studio 安装包非常庞大，而且下载速度时好时差。
 
 假如电脑配置差，或者不想要下载大约10G的文件，建议选择3。
 
@@ -43,24 +42,25 @@ https://win.rustup.rs/x86_64
 ![1746432336922](image/foundry/1746432336922.png)
 
 ## 最后的安装 Foundry
+
  curl -L https://foundry.paradigm.xyz | bash  // 下载foundryup
 source /c/Users/Administrator/.bashrc  // 刷新环境变量
  which foundryup // 查看foundryup的路径及环境变量是否设置成功
  foundryup   // 下载forge和anvil
 
 ### 验证安装：
+
  forge --version
 anvil --version
 
-
-
 # 学习记录
 
-
 ## 命令创建初始化项目:
+
 forge init [project_name]
 
 ## 目录介绍
+
 • cache : forge 缓存信息,在 forge build 后出现
 
 • lib :存放依赖库(默认安装 forge-std)
@@ -76,25 +76,24 @@ forge init [project_name]
 • foundry.toml : 项目foundry 配置
 
 ## 编译命令
-1. forge build  
-编译完成后，会在项目根目录下生成一个 out 文件夹，里面包含编译后的合约字节码文件。
-**注意不加参数**：直接运行 forge build（不带任何参数）会编译项目中的所有 Solidity 文件，包括：src、test、script 文件夹中的合约。
 
+1. forge build编译完成后，会在项目根目录下生成一个 out 文件夹，里面包含编译后的合约字节码文件。
+   **注意不加参数**：直接运行 forge build（不带任何参数）会编译项目中的所有 Solidity 文件，包括：src、test、script 文件夹中的合约。
 2. 指定编译单个文件
-forge build --match-path <文件路径>
+   forge build --match-path <文件路径>
 
 **举例：**
 forge build --match-path src/Counter.sol
 
 **举例：**forge build 执行情况
-forge build  
+forge build
 [⠊] Compiling...
 [⠘] Compiling 23 files with Solc 0.8.19
 [⠃] Solc 0.8.19 finished in 717.88ms
 Compiler run successful!
 
-
 ## 查看合约的各种编译产物和元信息
+
  forge inspect src/Counter.sol  abi
 
  ╭----------+---------------------------------+------------╮
@@ -107,22 +106,16 @@ Compiler run successful!
 | function | setNumber(uint256) nonpayable   | 0x3fb5c1cb |
 ╰----------+---------------------------------+------------╯
 
-
 ## 合约测试
+
 ### 编写测试用例:
 
 1. 测试文件默认用 t.sol 结尾,也可 CounterTest.sol
-
 2. 导入Test合约: 提供了基本的日志和断言功能
-
 3. 导入测试目标合约
-
 4. 继承 Test 合约,使用 Test 功能
-
 5. Setup函数(可选):每个测试用例运行前都调用
-
 6. 前缀为 test 的函数将作为测试用例运行
-
 7. testFuzz 模糊测试:测试用例的参数值,由 foundry 随机抽样
 
 ![1746605862658](image/foundry/1746605862658.png)
@@ -154,15 +147,26 @@ contract CounterTest is Test {
 }
 
 ### Forge 合约测试
+
 执行测试用例:
 forge test  全部测试用例
 
 forge  test test/CounterTest.t.sol    指定测试用例文件
 
+-v   显示详细的测试用例执行信息
+--mt  显示慢速测试用例
+--st  显示失败的测试用例
+
+forge test --match-path src/Counter.sol  只测试指定合约文件
+
+forge test test/测试用例  --mt  被测试合约   -vv
+
 
 
 ## 合约部署
+
 ### 本地启动: **anvil是本地区块链环境**，可以部署合约到本地区块链环境中。
+
 anvil
 
 • 在127.0.0.1:8545 启动服务
@@ -173,9 +177,10 @@ anvil
 举例：**测试网部署合约前，需要先启动本地模拟环境****
  anvil --fork-url   https://eth-sepolia.public.blastapi.io
 
-
 ### 合约部署
+
 #### 方式1：forge create
+
 **举例**
  forge create src/Counter.sol:Counter  --private-key  0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80  --rpc-url http://localhost:8545
 [⠊] Compiling...
@@ -257,9 +262,8 @@ ABI: [
   }
 ]
 
-
-
 #### 方式2：forge script
+
 **执行脚本**文件来部署合约
 
 **举例**：
@@ -280,15 +284,22 @@ forge script script/Counter.s.sol --private-key
 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7b
 f4f2ff80 --rpc-url http://localhost:8545 --broadcast
 
-
 # Forge 管理依赖库
+
 ## 安装依赖库
+
 forge install OpenZeppelin/openzeppelin-contracts
+
 ## 更新依赖库
+
 forge update openzeppelin-contracts
+
 ## 移除依赖库
+
 forge remove openzeppelin-contracts
-## 依赖库重映射 
+
+## 依赖库重映射
+
 项目根目录下执行
 forge remappings > remappings.txt
 
@@ -317,8 +328,8 @@ forge-std/=lib/forge-std/src/
 halmos-cheatcodes/=lib/openzeppelin-contracts/lib/halmos-cheatcodes/src/
 openzeppelin-contracts/=lib/openzeppelin-contracts/
 
-
 # 部署设置
+
 在项目根目录下，创建.env 文件，可以写入：
 私钥，助记词等一些不能公开的信息，防止上传到github
 **因为，该文件会被github忽略掉**
@@ -326,11 +337,13 @@ openzeppelin-contracts/=lib/openzeppelin-contracts/
 ![1746610702936](image/foundry/1746610702936.png)
 
 ## keystore 文件管理（加密管理）
+
 见下方Cast中的 keystore 文件管理
 
-
 # Cast 命令
+
 ## 基本概念
+
 **与链交互瑞士军刀**
 主要用于与以太坊网络交互、执行低级调用、编码/解码数据、管理钱包等。
 链上数据查询，交易与合约交互，数据编码/解码，钱包管理。
@@ -344,13 +357,13 @@ cast wallet new-mnemonic              # 生成一个新的助记词（12或24个
 
 cast wallet address [PRIVATE_KEY]     # 通过私钥计算对应的以太坊地址。
 
-cast wallet import -i -k <KEYSTORE_DIR> <ACCOUNT_NAME> # 
+cast wallet import -i -k <KEYSTORE_DIR> <ACCOUNT_NAME> #
 
 cast wallet import --mnemonic "test test test test test test test test test test
 test junk” -k <KEYSTORE_DIR> <ACCOUNT_NAME>
 
-
 **举例**：通过助记词**导入钱包**到本地环境，并将私钥保存到指定文件。
+
 1. 本质上是将助记词对应的私钥和地址载入当前工具中，恢复对该钱包的控制权，之后就可以直接使用这个钱包进行交易、查询或开发测试。
 2. “导入钱包”是指通过已有的密钥信息（如助记词、私钥或Keystore文件）恢复对某个区块链账户的访问权限。
 
@@ -358,15 +371,18 @@ test junk” -k <KEYSTORE_DIR> <ACCOUNT_NAME>
 cast wallet import --mnemonic "test test test test test test test test test test test junk" -k .keys hf
 
 ## 使用 cast wallet 账号部署合约
+
 ### 用 keystore 账号部署合约
+
 forge script script/Counter.s.sol --account <ACCOUNT_NAME>
 --rpc-url http://localhost:8545 --broadcast
 
 **我测试使用的命令方式：**
 **注意：**
+
 1. 该命令在项目根目录下执行；
 2. 需要输入 keystore 密码；
-   
+
 forge create Counter --keystore .keys/SKEY --rpc-url http://localhost:8545 --broadcast
 [⠊] Compiling...
 No files changed, compilation skipped
@@ -375,33 +391,37 @@ Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 Transaction hash: 0xb0bbc1f78c647445505ce91711f82e4edb686572a85f2940a6b5750e51f5e7bc
 
-
 # 5月7日作业
+
 ## 1. 用真实钱包，在sepolia测试网部署合约，采用foundry工具。
+
 **工作顺序：**
+
 1. 编写合约，合约编译，配置foundry.toml 文件，增加如下内容：sepolia = "https://eth-sepolia.public.blastapi.io"
-将助记词导入到本地环境，并将私钥保存到指定文件。
+   将助记词导入到本地环境，并将私钥保存到指定文件。
 2. 使用cast wallet 方式导入钱包账户到本地环境，并将私钥保存到指定文件。
 3. 使用脚本方式部署合约。
-forge script script/MyToken.s.sol --rpc-url https://eth-sepolia.public.blastapi.io  --broadcast --keystore .keys/hf 
+   forge script script/MyToken.s.sol --rpc-url https://eth-sepolia.public.blastapi.io  --broadcast --keystore .keys/hf
 
 ## 部署结果：
+
 ![1746627701127](image/foundry/1746627701127.png)
 
-2. 后期开源验证 
-如何申请ETHERSCAN_API_KEY，可以直接问AI
-**注意事项：** 已经将申请得key写入.env文件中，并且已经source .env文件，**请不要上传到github**。
+2. 后期开源验证
+   如何申请ETHERSCAN_API_KEY，可以直接问AI
+   **注意事项：** 已经将申请得key写入.env文件中，并且已经source .env文件，**请不要上传到github**。
 
-forge verify-contract \
-0xa740eE38BB16e25fd0417f57e00119eb99a05127 \
-src/MyToken.sol:MyToken \
---constructor-args $(cast abi-encode "constructor(string,string)" "MyToken"  "MTK") \
---verifier etherscan \
---verifier-url https://api-sepolia.etherscan.io/api \
---etherscan-api-key $ETHERSCAN_API_KEY \
+forge verify-contract 
+0xa740eE38BB16e25fd0417f57e00119eb99a05127 
+src/MyToken.sol:MyToken 
+--constructor-args $(cast abi-encode "constructor(string,string)" "MyToken"  "MTK") 
+--verifier etherscan 
+--verifier-url https://api-sepolia.etherscan.io/api 
+--etherscan-api-key $ETHERSCAN_API_KEY 
 --chain-id 11155111
 
 ## ETHERSCAN_API_KEY得作用
+
 Etherscan 的 API Key 不区分网络（主网、Sepolia、Goerli 等均可使用同一个 Key）。
 Etherscan 的 API Key 主要用于通过程序化方式与 Etherscan 提供的区块链数据服务交互
 **自动验证合约源码**

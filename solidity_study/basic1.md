@@ -1749,15 +1749,15 @@ Solidity 使用**状态恢复异常**来**处理错误**。
 
 ## 0.概述
 
-assert(bool condition):
+1. assert(bool condition):
 如果条件不满足，则使当前交易没有效果 — 用于检查内部错误。
-require(bool condition):
+2. require(bool condition):
 如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误。
-require(bool condition, string message):
+3. require(bool condition, string message):
 如果条件不满足则撤销状态更改 - 用于检查由输入或者外部组件引起的错误，可以同时提供一个错误消息。
-revert():
+4. revert():
 终止运行并撤销状态更改。
-revert(string reason):
+5. revert(string reason):
 终止运行并撤销状态更改，可以同时提供一个解释性的字符串。
 
 ## 1. 函数 assert 和 require 可用于检查条件并在条件不满足时抛出异常。
@@ -1802,12 +1802,35 @@ contract Sharer {
 - 如果你的合约通过公有 getter 函数接收 Ether 。
 - 如果 .transfer() 失败。
 
+
 ## 特点
 在内部， Solidity 对一个 require 式的异常执行回退操作（指令 0xfd ）并执行一个无效操作（指令 0xfe ）来引发 assert 式异常。 
 在这两种情况下，都会导致 EVM 回退对状态所做的所有更改。
 回退的原因是不能继续安全地执行，因为没有实现预期的效果。 
 因为我们想保留交易的原子性，所以最安全的做法是回退所有更改并使整个交易（或至少是调用）不产生效果。 
-**请注意，** assert 式异常消耗了所有可用的调用 gas ，而从 Metropolis 版本起 require 式的异常不会消耗任何 gas。
+**请注意，** 
+1. assert 式异常消耗了所有可用的调用 gas ，而从 Metropolis 版本起 
+2. require 式的异常不会消耗任何 gas。
+
+
+## try / catch 语句
+try/catch 语句专用于捕获外部调用（External Call）或合约创建（new Contract）时的异常
+
+**其编写规则如下：**
+try 外部调用表达式 returns(返回值类型 变量名) {
+    // 外部调用成功时执行
+} 
+catch Error(string memory reason) {
+    // 捕获revert("reason") 或 require(false, "reason") 
+} 
+catch Panic(uint errorCode) {
+    // 捕获assert失败、除零错误等Panic异常
+} 
+catch (bytes memory lowLevelData) {
+    // 捕获其他低级错误（如gas不足）
+}
+
+
 
 ### 举例1
 下边的例子展示了如何在 revert 和 require 中使用错误字符串：
@@ -3189,8 +3212,39 @@ ERC1363 是 ERC20 的扩展标准，在代币转账后自动触发接收合约�
 
 
 # 第1个ERC20代币合约
+## 逻辑
+1. 自己得钱包已经取得sepolia测试网得测试以太币；
+2. 用remix写erc20合约，内容是将：将合约部署时产生得代币，直接转入部署者地址；
+3. 钱包和网络：remix连接自己得钱包，自己的钱包网络需要切换到seplolia网络；
+4. 用自己得钱包，部署合约到sepolia，支付gas费；
+5. 我用得欧易钱包，需要到钱包得web2浏览器中，查验钱包中是否已经收到代币；
+6. 到https://app.uniswap.org/ 网站，连接自己得钱包，创建代币得流动性；
+7. 然后再去进行代币和测试以太币的兑换；
+
+## 合约代码
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+//导入了 OpenZeppelin 库中的 ERC20 标准合约实现，OpenZeppelin 是经过审计的安全智能合约库。
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+//定义了一个名为 XuXu 的合约，它继承自 OpenZeppelin 的 ERC20 合约，获得了所有标准 ERC20 功能。
+contract XuXu is ERC20 {
+    //接收一个 initialSupply 参数表示初始发行量
+//调用父合约 ERC20 的构造函数，设置代币名称为 "XuXu"，符号为 "XX"
+    constructor(uint256 initialSupply) ERC20("XuXu", "XX") {
+        _mint(msg.sender, initialSupply * 10 ** decimals());
+    }
+    //_mint 是 ERC20 的内部函数，用于创建新代币
+
+// 将所有初始代币铸造给部署者 (msg.sender)
+
+// initialSupply * 10 ** decimals() 将输入的单位转换为代币的最小单位（考虑小数位数）
+}
+
+## 过程记录
 sepolia 测试网
-地址：0x7C950AFA349F22F9a6E2d3Be48d711CacAa7c3D4
+合约地址：0x7C950AFA349F22F9a6E2d3Be48d711CacAa7c3D4
 浏览器查看链接：https://sepolia.etherscan.io/tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
 Blockscout查看连接：https://eth-sepolia.blockscout.com//tx/0x5513a015fa17ff54ebf1b87437d4d43a2f818bb31636008338f22f785e7a322a
 
@@ -3202,3 +3256,264 @@ https://sepolia.etherscan.io/address/0x44f08ed7d8f63b345f0fc512aecfaa4f16831643#
 
 **兑换交易记录**
 https://sepolia.etherscan.io/tx/0x549c25a9e7aeb5636f3e63e7b39be51c8a8a1c48cae920621f2f8c4a7f2f5517
+
+
+## **1个学习思考**
+**结论**：ERC20 合约中每个 token 与其他的 token 一样,称为同质化 Token(可置换的)
+1. ERC20合约仅记录总量与账户余额；
+2. 转账操作仅改变数值
+   
+### 什么是同质化 Token？
+同质化 Token 是指，所有 Token 都具有相同的属性，比如，所有 Token 都具有相同的代币名称、代币符号、精度、总量等。
+1. 举例：ERC20 代币，所有 Token 都具有相同的代币名称、代币符号、精度、总量等。
+2. 举例：人民币的「同质化」：
+你钱包中的100元纸币与ATM取出的100元纸币完全等价，可以任意互换使用，无需区分具体编号。
+3. ERC20代币映射：
+用户A持有的100 USDT与用户B持有的100 USDT价值相同，任意两个USDT代币单元可互相替代。
+
+
+# 第1个NFT合约
+## ERC721 
+ERC721 合约中每个 token 都是独一无二的,可用于表达如:
+
+• 艺术品画作、收藏品
+
+• 创作品:声音、影片、文章、一份档案
+
+• 游戏中的(限量)道具
+
+• 任何有特性的内容:一个交易记录
+
+## 经典NFT案例 
+https://etherscan.io/nft/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/4827
+https://etherscan.io/nft/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/4828
+https://etherscan.io/nft/0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d/4829
+.......
+
+
+## ERC721 如何实现
+contract ERC721 {
+// tokenId => address
+mapping(uint256 => address) ownerOf;
+mapping()
+
+function tokenURI(uint256 tokenId) public view returns (string memory);
+
+}
+
+• **ERC721 合约中每个 token 有一个 id**
+• **每个 Token 有一个对应 URI 来描述属性(JSON)**
+
+可以通过查看**经典NFT案例**中得NFT的合约，获得URI信息（Uniform Resource Identifier），可以用来观察学习别人的nft作品的合约的编写。
+**图例：**
+![1746686532457](image/basic1/1746686532457.png)                          --合约开源信息阅读
+![1746686547033](image/basic1/1746686547033.png)                          --TokenURI信息的hash值查询
+https://ipfs.io/ipfs/QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/282   -- 282号NFT的URI信息
+https://ipfs.io/ipfs/QmdavFprGYZR4kWcWWfci5of61sEdbvkjSMwnkBfEzitg3       -- 282号NFT的图片信息
+
+
+**URI信息内容：**
+{
+  "image": "ipfs://QmdavFprGYZR4kWcWWfci5of61sEdbvkjSMwnkBfEzitg3",
+  "attributes": [
+    {
+      "trait_type": "Mouth",
+      "value": "Bored Kazoo"
+    },
+    {
+      "trait_type": "Eyes",
+      "value": "Bored"
+    },
+    {
+      "trait_type": "Fur",
+      "value": "Black"
+    },
+    {
+      "trait_type": "Clothes",
+      "value": "Sleeveless Logo T"
+    },
+    {
+      "trait_type": "Hat",
+      "value": "Fisherman's Hat"
+    },
+    {
+      "trait_type": "Background",
+      "value": "Army Green"
+    }
+  ]
+}
+
+## 行业标准网站
+https://docs.opensea.io/docs
+
+
+## ERC721 MetaData /URI信息内容
+{
+"title": “集训营学员 - Vitalik",
+"description": “OpenSpace - 华语 Web3 黄埔军校”,
+"image": "ipfs://Qmdt6K59JBmz24iPh7FkU1Z1m3j8Uzbhc4kj97kBdfTJ8i",
+"attributes": [
+{
+"trait_type": "学号",
+"value": "02002"
+},
+{
+"trait_type": "昵称",
+"value": "Vitalik"
+}
+],
+"version": “2"
+}
+
+## MetaData数据存储
+1. IPFS 全球分布式存储存储，Arweave: 去中心化存储区块链,每个节点都是一个 HTTP 服务器
+2. **使用文件的hash值去索引数据内容**
+
+
+## 与NFT（非同质化代币）的对比
+| 特性      | ERC20（同质化） | ERC721/ERC1155（非同质化） |
+ |---------|---------------- |---------------------------------| 
+ | 最小单位 | 可分割（如0.001个代币） | 不可分割（1个完整的NFT） | 
+ | 标识唯一性 | 无唯一标识     | 每个Token有唯一ID | 
+ | 价值基础 | 所有单元等值      | 个体属性决定价值差异 |
+| 使用场景 | 货币、股权、积分等 | 艺术品、游戏道具、域名等 |
+
+
+## 如何铸造一个 **NFT**
+• 图片上传到如 IPFS (Pinata)
+1.上传地址：app.pinata.cloud/ipfs/files
+2. 将返回的hash值复制到元数据中
+• 编写元数据文件(JSON)
+
+• 元数据文件上传到 IPFS 
+1. 元数据json上传；
+2. 取得hash值
+• 调用mint() 方法
+将元数据hash值传入mint()方法，合约会自动生成一个唯一的TokenID，并将TokenID与上传的元数据绑定。
+• Opensea 等 NFT 市场查看
+
+
+# SBT
+• 无法转让的 NFT = SBT (灵魂绑定 Token)
+• 如何实现?
+function transferFrom(address, address, uint256) public virtual override {
+revert("SBT:non-transferable");
+}
+
+function safeTransferFrom(
+address,
+address,
+uint256
+) public virtual override {
+revert("SBT:non-transferable");
+}
+
+证书，门票
+
+# ERC1155
+• ERC20 与 ERC721 的结合,兼顾独特性与数量
+
+• 如:一份作品发行多个拷贝
+
+• 一个限量的邮票、道具
+
+# 作业
+内容：用 ERC721 标准（可复用 OpenZepplin 库）发行一个自己 NFT 合约，并用图片铸造几个 NFT ， 请把图片和 Meta Json数据上传到去中心的存储服务中，请贴出在 OpenSea 的 NFT 链接。
+## 1. ERC721 合约
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+//继承了所有 ERC721 标准功能 //增加了存储每个 token URI 的能力
+contract MyNFT is ERC721URIStorage {
+
+    using Counters for Counters.Counter;
+
+    //声明一个私有计数器变量//用于跟踪和生成 NFT 的唯一 ID
+    Counters.Counter private _tokenIds;
+    
+    constructor() ERC721("MyNFT", "MNFT") {}
+    
+    function mintNFT(address recipient, string memory tokenURI) 
+        public 
+        returns (uint256)
+    {
+        _tokenIds.increment();//增加计数器值
+        
+        uint256 newItemId = _tokenIds.current();//获取当前计数器值作为新 NFT ID
+        _mint(recipient, newItemId);//铸造 NFT 并分配给 recipient 地址
+        _setTokenURI(newItemId, tokenURI);//设置 NFT 的元数据链接
+        
+        return newItemId;//返回新创建的 NFT ID
+    }
+}
+
+
+## 2. 图片上传到 IPFS
+上传地址：app.pinata.cloud/ipfs/files
+CID:hash值：bafybeigsgpotx42rkjshybdbkcxjhmahr3by3yztkm6aqnxsgtrhmlwyye
+FILE ID：0196af58-9819-7aef-aa91-d29bb04fd01c
+
+验证一下图片上传情况：查看链接
+https://ipfs.io/ipfs/bafybeigsgpotx42rkjshybdbkcxjhmahr3by3yztkm6aqnxsgtrhmlwyye
+
+
+## 3. 编写元数据文件(JSON)
+{
+    "name": "My Peri NFT",
+    "description": "This is my first NFT created with ERC721",
+    "external_url": "https://openseacreatures.io/3", 
+    "image": "ipfs://bafybeigsgpotx42rkjshybdbkcxjhmahr3by3yztkm6aqnxsgtrhmlwyye", //图片hash
+    "attributes": [
+        {
+            "trait_type": "Rarity", 
+            "value": "High",
+            "style":"classical",
+            "gender":"male",
+            "age":"30",
+            "height":"170cm",
+            "education":"master's degree",
+            "occupation":"teacher&artist&civil servant",
+        }
+    ]
+}
+
+json上传地址：app.pinata.cloud/ipfs/files
+文件hash值：bafkreigdqv2covgzhbvt2imab5sktlhidngvgn2p5keeqr7mv2fisyiihq
+文件ID值：0196af9c-a112-7f11-ba71-ad088b99a393
+验证一下文件上传情况：查看链接
+https://ipfs.io/ipfs/bafkreigdqv2covgzhbvt2imab5sktlhidngvgn2p5keeqr7mv2fisyiihq
+
+
+## 4. 部署合约（以太坊测试网sepolia部署）
+钱包连接sepolia测试网络；
+Remix连接钱包；
+编译合约；
+部署合约；
+
+合约地址：0xf53701ff88deaebb83202f1e21e166f8951e093d 
+查看链接：https://sepolia.etherscan.io/tx/0x6a90bfeb928f74d583ba8c35b7e23fa0bd22a4c524ab8b55294391c05f7d9526
+在 Remix 的 "部署的合约" 部分：
+
+## 5. 铸造 NFT
+找到你的合约实例
+在 mintNFT 函数中：
+recipient: 你的钱包地址
+tokenURI: ipfs://bafkreigdqv2covgzhbvt2imab5sktlhidngvgn2p5keeqr7mv2fisyiihq（你的元数据哈希）
+点击 "transact" 并在 钱包中 中确认；
+**重复此过程铸造多个 NFT**
+**查看铸造NFT的链接**：
+https://sepolia.etherscan.io/tx/0x0ae9efe6884248641c30c5445562316186b4fde615d991c5cc7a2e9a2ce08c4f
+
+## 5. 查看 NFT 链接
+在以下网址中搜索NFT合约地址，即可查看铸造的NFT：图示
+https://testnets.opensea.io/
+![1746701408926](image/basic1/1746701408926.png)
+NFT链接：
+https://testnets.opensea.io/zh-CN/collection/mynft-13737
+
+第二次做的：NFT链接：
+https://testnets.opensea.io/zh-CN/collection/mynft-13740

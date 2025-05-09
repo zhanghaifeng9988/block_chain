@@ -250,7 +250,7 @@ ABI: [
 
 **执行脚本**文件来部署合约
 
-**举例**：
+**脚本配置，举例**：
 contract CounterScript is Script {
 Counter public counter;
 
@@ -350,7 +350,7 @@ test junk” -k <KEYSTORE_DIR> <ACCOUNT_NAME>
 2. “导入钱包”是指通过已有的密钥信息（如助记词、私钥或Keystore文件）恢复对某个区块链账户的访问权限。
 
 在项目根目录下执行，SKEY 是文件名,.keys目录默认创建在项目根目录下
-cast wallet import --mnemonic "test test test test test test test test test test test junk" -k .keys hf
+cast wallet import --mnemonic "test test test test test test test test test test test junk" -k .keys SKEY
 
 ## 使用 cast wallet 账号部署合约
 
@@ -359,7 +359,7 @@ cast wallet import --mnemonic "test test test test test test test test test test
 forge script script/Counter.s.sol --account <ACCOUNT_NAME>
 --rpc-url http://localhost:8545 --broadcast
 
-**我测试使用的命令方式：**
+**我测试使用的create命令方式：**
 **注意：**
 
 1. 该命令在项目根目录下执行；
@@ -372,6 +372,15 @@ Enter keystore password:
 Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
 Transaction hash: 0xb0bbc1f78c647445505ce91711f82e4edb686572a85f2940a6b5750e51f5e7bc
+
+**我测试使用的脚本方式**
+ forge script  script/Counter.s.sol --rpc-url $LOCAL --broadcast --keystore .keys/SKEY
+
+**注意1**：$LOCAL是env中已经声明的变量，本地链的rpc测试地址。
+**注意2**：脚本部署，如果使用keystore的方式，是不会显示部署钱包的地址的，使用这个命令查看：
+ cat broadcast/Counter.s.sol/31337/run-latest.json | jq '.transactions[0].transaction.from'
+
+
 
 # 5月7日作业
 
@@ -402,6 +411,7 @@ src/MyToken.sol:MyToken
 --etherscan-api-key $ETHERSCAN_API_KEY 
 --chain-id 11155111
 
+
 ## ETHERSCAN_API_KEY得作用
 
 Etherscan 的 API Key 不区分网络（主网、Sepolia、Goerli 等均可使用同一个 Key）。
@@ -427,26 +437,118 @@ Etherscan 的 API Key 主要用于通过程序化方式与 Etherscan 提供的�
 断言工具（assertEq、assertTrue 等）。
 
 
+# foundry.toml
+这个文件可以和.env 配合使用，
+
+## 新的env文件配置如下：
+ETHERSCAN_API_KEY="AJWMGPID8JKAGE9ZVW4BTZ6F8TQ3SQUKNZ"
+LOCAL="http://localhost:8545"
+SEPOLIA="https://eth-sepolia.public.blastapi.io"
+
+## foundry.toml文件配置如下：
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+[rpc_endpoints]
+# sepolia = "https://eth-sepolia.public.blastapi.io"
+# localhost = "http://localhost:8545"  # 添加anvil本地节点
+sepolia = "${SEPOLIA}"
+local = "${LOCAL}" 
+api_key = "${ETHERSCAN_API_KEY}"
+
+## 解释一下
+1. env文件中的环境变量配置信息，生效后，可以在foundry的命令行中，通过$变量名的方式引用。(上面ETHERSCAN_API_KEY开源代码的配置就是通过这种方式引用的)
+2. toml文件，可以将env文件中的环境变量配置信息，映射为1个新的名称，如果在命令行中使用，则无需使用$符号。
+
+3. **举例：脚本部署合约的命令** local即为toml文件中定义的名称
+forge script  script/Counter.s.sol --rpc-url local --broadcast --keystore .keys/SKEY
+
+
 
 # 5月8日测试
 ## Forge 合约测试
+forge test  这个命令会将test目录下的所有测试文件跑一遍
+
 ### 为你的合约生成函数消耗的 Gas 报告
-forge test test/Counter.t.sol  -vv --gas-report
+forge test test/Counter.t.sol   --gas-report
+
+### 测试命令
+• --match-test <REGEX> 仅运行与指定的正则表达式模式匹配的测试函数 [别名: mt]
+
+• --no-match-test <REGEX> 仅运行不符合指定正则表达式模式的测试函数 [别名: nmt]
+
+• --match-contract <REGEX> 仅运行与指定正则表达式模式匹配的合约中的测试 [别名: mc]
+
+• --no-match-contract <REGEX> 仅运行不符合指定正则表达式模式的合约中的测试 [别名: nmc]
+
+
+**举例：匹配特定的测试用例case**
+forge test --match-test test_Increment
+别名：
+forge test --mt test_Increment
+
+**举例：匹配特定的合约文件**
+forge test --match-contract Counter
+别名：
+forge test --mc Counter
+
+### -v的用法
+-v 参数用于控制测试输出的详细程度
+
+| 参数    |  输出内容 | 
+|------- |------------------------------------------------| 
+| -v     |  默认模式仅显示最终测试结果摘要 | 
+| -vv    | 显示测试名称列出每个测试用例的名称和状态（✅通过/❌失败） | 
+| -vvv   | 显示失败详情输出失败测试的报错堆栈和 revert 原因 | 
+| -vvvv  | 显示全量日志打印所有测试的调用日志（包括成功用例） | 
+| -vvvvv | EVM 跟踪模式展示完整的 EVM 操作码跟踪和存储变化 |
+
+
+### 常用作弊码
+
+• vm.roll(uint256 blockNumber):模拟区块号的变更。
+
+• vm.prank(address sender):更改下一个调用的发送者(msg.sender)。
+
+• vm.warp(uint256 timestamp):改变区块时间戳。
+
+• vm.deal(address to, uint256 amount):重置ETH余额到指定地址。
+
+• deal(address token, address to, uint256 amount):重置ERC20代币余额。
+
+### 逆向测试
+正向测试：被测试语句要是1+1=2，就测试结果是否等于2，不等于2，则报错；
+逆向测试：预期被测试语句的结果，预期正确，则测试通过。
+
+### 测试常用作弊码的一些命令
+**举例**：
+1. 测试，文件Cheatcode.t.sol中test_Roll用例，使用本地环境；
+forge test  test/Cheatcode.t.sol --rpc-url local --mt test_Roll -vvv --gas-report
+
+
+2. 测试，文件Cheatcode.t.sol中test_Revert_IFNOT_Owner用例，使用本地环境；
+forge test  test/Cheatcode.t.sol --rpc-url local --mt test_Revert_IFNOT_Owner -vvv
 
 
 
-执行测试用例:
-forge test  全部测试用例
-
-forge  test test/CounterTest.t.sol    指定测试用例文件
-
--v   显示详细的测试用例执行信息
---mt  显示慢速测试用例
---st  显示失败的测试用例
-
-forge test --match-path src/Counter.sol  只测试指定合约文件
-
-forge test test/测试用例  --mt  被测试合约   -vv
+# 补充1个常识
+✅ 部署合约时：owner = 部署者的地址 (msg.sender)
+✅ 调用合约时：msg.sender = 当前调用者的地址
+🔒 权限控制：通过 require(msg.sender == owner) 确保只有 owner 能执行特权操作
 
 
-forge test --match-path test/MyTest.t.sol --match-test "testMintFunction"
+### 分叉测试
+**--fork-block-number 1 表示区块的高度**
+forge test test/Counter.t.sol --fork-url <your_rpc_url> --fork-block-number 1 -vv
+
+forge test test/Counter.t.sol --fork-url sepolia -vv
+
+如果**测试文件**中**已经包含了分叉的信息**，测试命令就可以不需要再指定 --fork-url 和 --fork-block-number 了。
+ forge test test/Fork.t.sol -vv
+
+
+
+5月8日测试作业的一些命令：
+ forge test test/BankTest.t.sol  -vvv > test/logs/BankTest.log 2>&1

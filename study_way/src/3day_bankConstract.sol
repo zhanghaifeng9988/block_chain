@@ -40,8 +40,9 @@ contract Bank {
         uint256 amount = address(this).balance;
         require(amount > 0, "No funds to withdraw");
 
-        // 将合约中的以太币（ETH）转账给管理员的地址
-        payable(admin).transfer(amount);
+        // 使用call进行ETH转账，更安全可靠
+        (bool success, ) = payable(admin).call{value: amount}("");
+        require(success, "Transfer failed");
     }
 
     // 对存款用户进行排序，将前三名推入定义的两个数组中
@@ -68,45 +69,57 @@ contract Bank {
 */
 
     function updateTopUsers(address user, uint256 amount) internal {
-    // 检查是否已经是顶级用户,如果是，更新其金额,并排序
-    for (uint i = 0; i < topUsers.length; i++) {
-        if (topUsers[i] == user) {
-            topDeposits[i] = amount;
+        // 检查是否已经是顶级用户
+        for (uint i = 0; i < topUsers.length; i++) {
+            if (topUsers[i] == user) {
+                topDeposits[i] = amount;
+                _sortTopUsers();
+                return;
+            }
+        }
+        
+        // 如果还没有3个顶级用户，直接添加
+        if (topUsers.length < 3) {
+            topUsers.push(user);
+            topDeposits.push(amount);
             _sortTopUsers();
+            emit TopUserUpdated(user, amount);
             return;
         }
+        
+        // 已经有3个顶级用户，检查是否可以替换
+        uint256 minAmount = topDeposits[2];
+        if (amount > minAmount) {
+            // 替换金额最小的用户
+            topUsers[2] = user;
+            topDeposits[2] = amount;
+            _sortTopUsers();
+            emit TopUserUpdated(user, amount);
+        }
     }
-    
-    // 如果不足3个存款用户，直接添加，并排序
-    if (topUsers.length < 3) {
-        topUsers.push(user);
-        topDeposits.push(amount);
-        _sortTopUsers();
-    } 
-    // 否则，检查当前用户存款金额是否大于当前最小金额，如果是，替换最小金额，并排序
-    else if (amount > topDeposits[2]) {
-        topUsers[2] = user;
-        topDeposits[2] = amount;
-        _sortTopUsers();
-    }
-    // 触发事件，将最新的3个金额最多的存款用户信息发布出去，并执行日志记录
-    emit TopUserUpdated(user, amount);
-}
 
 // 辅助函数，对top3进行排序
-function _sortTopUsers() private {
-    if (topDeposits.length > 1) {          // 需要检查，避免空数组或单元素数组
-        for (uint i = 0; i < 2; i++) {    // i < 3 - 1 → i < 2
-            for (uint j = 0; j < 2 - i; j++) {  // j < 3 - i - 1 → j < 2 - i
+    function _sortTopUsers() private {
+        // 确保数组长度一致且不超过3
+        require(topUsers.length == topDeposits.length, "Arrays length mismatch");
+        require(topUsers.length <= 3, "Too many top users");
+        
+        if (topDeposits.length <= 1) {
+            return; // 不需要排序
+        }
+        
+        // 简单的冒泡排序实现
+        for (uint i = 0; i < topDeposits.length - 1; i++) {
+            for (uint j = 0; j < topDeposits.length - i - 1; j++) {
                 if (topDeposits[j] < topDeposits[j+1]) {
-                    // 交换金额和地址（保持不变）
+                    // 交换金额
                     (topDeposits[j], topDeposits[j+1]) = (topDeposits[j+1], topDeposits[j]);
+                    // 交换对应的用户地址
                     (topUsers[j], topUsers[j+1]) = (topUsers[j+1], topUsers[j]);
                 }
             }
         }
     }
-}
 
 
 
@@ -128,19 +141,19 @@ function _sortTopUsers() private {
 
     // 内部函数，处理存款逻辑
     function _handleDeposit(address user, uint256 amount) internal {
-        // 判断用户是不是第一次存钱，是的话，就创建用户的存款账户
+        // 判断用户是不是第一次存钱
         if (balances[user] == 0) {
             users.push(user);
         }
 
-        // 设置用户余额为当前合约接收的以太币数量
+        // 更新用户余额
         balances[user] += amount;
 
         // 触发 Deposit 事件
         emit Deposit(user, amount);
 
-        // 调用 updateTopUsers 函数
-        updateTopUsers(user, amount);
+        // 更新排名，传递总余额而非单次存款金额
+        updateTopUsers(user, balances[user]);
     }
 
     // receive 函数，用于处理直接向合约发送以太币的情况

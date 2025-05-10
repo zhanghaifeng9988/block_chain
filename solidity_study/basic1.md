@@ -268,15 +268,15 @@ gas price 是交易发送者设置的一个值，发送者账户需要预付的�
 **3. StorageRoot**
 定义：StorageRoot 是账户存储树的根节点哈希值。
 作用：
-对于合约账户(CA)，StorageRoot 指向该合约的存储数据区，**存储了合约的状态变量**。
-对于外部账户（EOA），StorageRoot **通常为空**。
+对于**合约账户**(CA)，StorageRoot 指向该合约的存储数据区，**存储了合约的状态变量**。
+对于**外部账户**（EOA），StorageRoot **通常为空**。
 存储结构：合约的存储数据以键值对的形式组织，**通过 Merkle Patricia Trie（MPT）树结构存储**，以确保数据的高效检索和完整性。
 
 **4. CodeHash**
 定义：CodeHash 是**账户代码的哈希值**。
 作用：
-对于合约账户(CA)，CodeHash 存储了合约代码的哈希值，**用于验证合约代码的完整性**。
-对于外部账户（EOA），CodeHash **通常为空**。
+对于**合约账户**(CA)，CodeHash 存储了合约代码的哈希值，**用于验证合约代码的完整性**。
+对于**外部账户**（EOA），CodeHash **通常为空**。
 不可变性：合约代码一旦部署，CodeHash 就不可更改，这保证了合约代码的不可篡改。
 
 **5. 总结**
@@ -319,7 +319,7 @@ CodeHash：存储合约代码的哈希值（**对于合约账户**）。
 
 
 ## 消息调用（Message Call）
-1. **合约**可以通过消息调用的方式来**调用其它合约**或者**发送以太币到非合约账户**。
+1. **合约**可以通过消息调用的方式来**调用其它合约**或者**发送以太币到非合约和合约账户**。
 2. 消息调用和交易非常类似，它们都有一个源、目标、数据、以太币、gas和返回数据。
 3. 事实上每个交易都由一个顶层消息调用组成，这个消息调用又可创建更多的消息调用。
 4. Solidity中，发起调用的合约默认会触发一个手工的异常，以便异常可以从调用栈里“冒泡出来”；
@@ -564,7 +564,7 @@ int / uint ：分别表示有符号和无符号的不同位数的整型变量。
 算数运算符： + ， - ， 一元运算 - ， 一元运算 + ， * ， / ， % （取余） ， ** （幂）， << （左移位） ， >> （右移位）
 
 
-### 3.定长浮点型
+### 3.定长浮点型--
 fixed / ufixed：表示各种大小的有符号和无符号的定长浮点型。 
 在关键字 ufixedMxN 和 fixedMxN 中，M 表示该类型占用的位数，N 表示可用的小数位数。 M 必须能整除 8，即 8 到 256 位。 N 则可以是从 0 到 80 之间的任意数。 ufixed 和 fixed 分别是 ufixed128x19 和 fixed128x19 的别名。
 
@@ -579,6 +579,11 @@ fixed / ufixed：表示各种大小的有符号和无符号的定长浮点型。
 address：地址类型存储一个 **20 字节的值**（以太坊地址的大小）。 
 地址类型也有成员变量，并作为所有合约的基础。
 是一种特殊的 值类型（Value Type）
+
+
+### 5. 补充知识
+钱包地址和合约地址都是20个字节，私钥是32字节，公钥是64字节（未压缩）或33字节（压缩）。
+1个字节8位，4位1个十六进制数，所以一个地址是40个字符。
 
 #### 成员变量
 1. balance 和 transfer
@@ -623,7 +628,7 @@ nameReg.call.value(1 ether)("register", "MyName");
 nameReg.call.gas(1000000).value(1 ether)("register", "MyName");
 
 **注意：**
-这三个函数 call， delegatecall 和 staticcall 是 Solidity 的底层函数，应仅在高级抽象无法满足需求时使用，并需严格验证输入和返回值。因为这些底层调用绕过了 Solidity 的类型检查和安全性机制（如自动异常传播、ABI 编码验证）。
+这三个函数 call， delegatecall 和 staticcall 是 Solidity 的**底层函数**，应仅在高级抽象无法满足需求时使用，并需严格验证输入和返回值。因为这些底层调用**绕过了 Solidity 的类型检查和安全性机制**（如自动异常传播、ABI 编码验证）。
 
 **具体来说，任何未知的合约都可能是恶意的。 你在调用一个合约的同时就将控制权交给了它，它可以反过来调用你的合约， 因此，当调用返回时要为你的状态变量的改变做好准备。**
 
@@ -718,7 +723,18 @@ function safeSendETH(address payable to, uint256 amount) internal {
 在以太坊升级（如 EIP-4758）后，此功能可能被禁用。
 
 
-### 5.**定长**字节数组--**引用类型**
+**当前状态2025年5月10日**
+selfdestruct 仍可用，但功能和行为发生了重要变化（尤其是 EIP-4758 和 EIP-6049 的讨论后）。
+
+主要限制：
+
+合约代码不再立即清除：即使调用 selfdestruct，合约的代码和存储仍可能保留（直到未来升级完全禁用）。
+
+ETH 发送行为不变：合约余额仍会强制发送到目标地址。
+
+
+## 2. 引用类型
+### 1.**定长**字节数组--**引用类型**
 **关键字有：**bytes1， bytes2， bytes3， ...， bytes32。byte 是 bytes1 的别名。
 
 #### 运算符：
@@ -731,15 +747,15 @@ function safeSendETH(address payable to, uint256 amount) internal {
 - .length 表示这个字节数组的长度
 
 
-### 6. **变长**字节数组--**引用类型**
+### 2. **变长**字节数组--**引用类型**
 bytes:
 变长字节数组。**它并不是值类型。**
 string:
 变长 UTF-8 编码字符串类型。**并不是值类型。**
 
 
-### 7. 地址字面常量（Address Literals）
-比如像 0xdCad3a6d3569DF655070DEd06cb7A1b2Ccd1D3AF 这样的通过了地址校验和测试的十六进制字面常数属于 address 类型。 
+### 3. 地址字面常量（Address Literals）
+比如像 0xdCad3a6d3569DF655070DEd06cb7A1b2Ccd1D3AF 这样的通过了地址校验和测试的**十六进制字面常量**属于 address 类型。 
 长度在 39 到 41 个数字的，没有通过校验和测试而产生了一个警告的十六进制字面常数视为正常的有理数字面常数。
 
 
@@ -843,7 +859,7 @@ function (<parameter types>) {internal|external} [pure|constant|view|payable] [r
 
 
 ### 函数选择器
-public（或 external）函数也有一个特殊的成员变量称作 selector，可以返回 ABI 函数选择器:
+public（或 external）函数也有一个**特殊的成员变量称作 selector**，可以返回 ABI 函数选择器:
 
 contract Selector {
   function f() public view returns (bytes4) {
@@ -1010,7 +1026,7 @@ oracleContract.events.NewRequest({ fromBlock: 'latest' })
 
 
 
-## 4. 引用类型
+## 4. 数据存储类型 
 在处理复杂的类型（即占用的空间超过 256 位的类型）时，我们需要更加谨慎。 
 由于拷贝这些类型变量的开销相当大，我们不得不考虑它的存储位置，是将它们保存在 **内存memory** （并不是永久存储）中， 还是 **存储storage** （保存状态变量的地方）中。
 
@@ -1034,7 +1050,7 @@ calldata 是以太坊中用于**存储合约函数调用参数**的一种特殊�
    ✅ 临时性：仅在本次函数调用期间存在，调用结束后消失。
 ✅ Gas 成本低：比 memory 和 storage 更省 Gas。
 
-1. **注意**：calldata **只能用于** 数组（array）、结构体（struct）或映射（mapping） 这样的**复杂类型**。
+1. **注意**：calldata **只能用于** 数组（array）、结构体（struct）或映射（mapping） 这样的**引用类型**。
 
 但你在 address 这种 基本类型（值类型） 上使用了 calldata，这是不允许的。
 
@@ -1442,6 +1458,7 @@ function add(uint256 a, uint256 b) public pure returns (uint256) {
   **调用 add(1, 2) 的 ABI 编码：**
 -1 函数选择器：
 bytes4(keccak256("add(uint256,uint256)")) = 0x771602f7
+
 -2 参数编码：
 a = 1 → 0x0000000000000000000000000000000000000000000000000000000000000001
 b = 2 → 0x0000000000000000000000000000000000000000000000000000000000000002
@@ -2299,7 +2316,6 @@ contract Counter is ICounter {
 
 //定义对外的接口
 //与合约Counter交互，中介功能，帮助其他代码去和 Counter 合约打交道。
-**这个就是真正的接口。**
 contract MyContract {
     function incrementCounter(address  _counter)  external {
         //将传入的参数地址，转换为 ICounter 类型，并调用其 increment() 方法
@@ -2734,8 +2750,11 @@ contracts
 
 # 1个ERC20代币合约的实现和代币存储合约的实现
 ## 代币制造合约
-// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+
+
 
 //ERC20代币  合约实现
 // transferFrom + 授权（approve）机制的设计,为了实现更灵活的代币交互逻辑,尤其是在智能合约之间的自动化场景中。
@@ -2909,6 +2928,7 @@ contract TokenBank {
     }
 
 }
+
 
 
 

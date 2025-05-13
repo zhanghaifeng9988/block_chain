@@ -1,110 +1,111 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import "../tokens/9day_thridToken.sol";
 import "../interfaces/IERC20Receiver.sol";
 
-contract NFTMarket is IERC721Receiver, IERC20Receiver1 {
-    struct Listing { // NFT 信息
+contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1 {
+    struct Listing {
         address seller;
-        address nftAddress;
-        uint256 tokenId;
         uint256 price;
+        bool isActive;
     }
 
+    // NFT合约地址 => tokenId => 上架信息
     mapping(address => mapping(uint256 => Listing)) public listings;
+    
+    // 平台费用比例（百分比）
+    uint256 public platformFeePercentage = 2;
+    
+    // 平台费用接收地址
+    address public feeRecipient;
+    
+    // ERC20代币合约
     ExtendERC20Two public erc20Token;
-    
-    // 发布 NFT 信息的事件
-    event NFTListed( 
-        address indexed seller,
-        address indexed nftAddress,
-        uint256 indexed tokenId,
-        uint256 price
-    );
-    
-    // 购买 NFT 信息的事件
-    event NFTBought( 
-        address indexed buyer,
-        address indexed seller,
-        address indexed nftAddress,
-        uint256 tokenId,
-        uint256 price
-    );
-    
-    // 用于初始化合约中使用的 ERC20 Token
-    constructor(address _erc20Token) {
+
+    event NFTListed(address indexed nftContract, uint256 indexed tokenId, address indexed seller, uint256 price);
+    event NFTBought(address indexed nftContract, uint256 indexed tokenId, address indexed buyer, uint256 price);
+    event NFTUnlisted(address indexed nftContract, uint256 indexed tokenId, address indexed seller);
+    event PlatformFeeUpdated(uint256 newFeePercentage);
+    event FeeRecipientUpdated(address newFeeRecipient);
+
+    constructor(address _erc20Token, address _feeRecipient) {
         erc20Token = ExtendERC20Two(_erc20Token);
+        feeRecipient = _feeRecipient;
+        _transferOwnership(msg.sender);
     }
-    
-    // NFT上架
-    function list(
-        address _nftAddress,
-        uint256 _tokenId,
-        uint256 _price
-    ) external {
-        require( // 合约地址和 tokenId 必须有效，且调用者msg.sender 必须是 NFT 的所有者
-            IERC721(_nftAddress).ownerOf(_tokenId) == msg.sender,
-            "Not the owner"
-        );
+
+    // 上架NFT
+    function list(address nftContract, uint256 tokenId, uint256 price) external nonReentrant {
+        require(price > 0, "Price must be greater than 0");
+        require(IERC721(nftContract).ownerOf(tokenId) == msg.sender, "Not the owner");
         
-        require(// 当前合约地址必须是 NFT 的授权合约，或 msg.sender 是 NFT 的所有者
-            IERC721(_nftAddress).getApproved(_tokenId) == address(this) ||
-            IERC721(_nftAddress).isApprovedForAll(msg.sender, address(this)),
-            "Not approved"
-        );
+        // 检查是否已经上架
+        require(!listings[nftContract][tokenId].isActive, "Already listed");
         
-        require(_price > 0, "Price must be greater than 0");
-        
-        // 保存 NFT 上架信息,结构体类型保存
-        listings[_nftAddress][_tokenId] = Listing({
+        // 记录上架信息
+        listings[nftContract][tokenId] = Listing({
             seller: msg.sender,
-            nftAddress: _nftAddress,
-            tokenId: _tokenId,
-            price: _price
+            price: price,
+            isActive: true
         });
         
-        //发布 NFT 上架事件
-        emit NFTListed(msg.sender, _nftAddress, _tokenId, _price);
+        emit NFTListed(nftContract, tokenId, msg.sender, price);
     }
-    
 
     // 购买NFT
-    function buyNFT(address _nftAddress, uint256 _tokenId) external {
-        Listing memory listing = listings[_nftAddress][_tokenId];
-        require(listing.seller != address(0), "NFT not listed");
+    function buyNFT(address nftContract, uint256 tokenId) external nonReentrant {
+        Listing storage listing = listings[nftContract][tokenId];
+        require(listing.isActive, "Not listed");
+        require(msg.sender != listing.seller, "Cannot buy your own NFT");
         
-        require(
-            erc20Token.transferFrom(
-                msg.sender,
-                listing.seller,
-                listing.price
-            ),
-            "Token transfer failed"
-        );
+        // 计算平台费用
+        uint256 platformFee = (listing.price * platformFeePercentage) / 100;
+        uint256 sellerAmount = listing.price - platformFee;
         
-        // 转移 NFT 到购买者,购买者是调用这个函数的 msg.sender
-        IERC721(_nftAddress).safeTransferFrom(
-            listing.seller,
-            msg.sender,
-            listing.tokenId
-        );
+        // 转移ERC20代币
+        require(erc20Token.transferFrom(msg.sender, listing.seller, sellerAmount), "Transfer to seller failed");
+        require(erc20Token.transferFrom(msg.sender, feeRecipient, platformFee), "Transfer fee failed");
         
-        // 删除上架信息
-        delete listings[_nftAddress][_tokenId];
+        // 转移NFT
+        IERC721(nftContract).transferFrom(listing.seller, msg.sender, tokenId);
         
-        // 发布 NFT 购买事件
-        emit NFTBought(
-            msg.sender,
-            listing.seller,
-            _nftAddress,
-            _tokenId,
-            listing.price
-        );
+        // 更新上架状态
+        listing.isActive = false;
+        
+        emit NFTBought(nftContract, tokenId, msg.sender, listing.price);
     }
-    
+
+    // 下架NFT
+    function unlist(address nftContract, uint256 tokenId) external nonReentrant {
+        Listing storage listing = listings[nftContract][tokenId];
+        require(listing.isActive, "Not listed");
+        require(listing.seller == msg.sender, "Not the seller");
+        
+        listing.isActive = false;
+        
+        emit NFTUnlisted(nftContract, tokenId, msg.sender);
+    }
+
+    // 更新平台费用比例（仅限管理员）
+    function updatePlatformFee(uint256 newFeePercentage) external onlyOwner {
+        require(newFeePercentage <= 10, "Fee too high");
+        platformFeePercentage = newFeePercentage;
+        emit PlatformFeeUpdated(newFeePercentage);
+    }
+
+    // 更新费用接收地址（仅限管理员）
+    function updateFeeRecipient(address newFeeRecipient) external onlyOwner {
+        require(newFeeRecipient != address(0), "Invalid address");
+        feeRecipient = newFeeRecipient;
+        emit FeeRecipientUpdated(newFeeRecipient);
+    }
+
     //转入NFT给这个合约时候的回调处理机制
     // ERC721 接收回调
     function onERC721Received(
@@ -146,10 +147,9 @@ contract NFTMarket is IERC721Receiver, IERC20Receiver1 {
         delete listings[nftAddress][tokenId];
         
         emit NFTBought(
-            sender,
-            listing.seller,
             nftAddress,
             tokenId,
+            sender,
             listing.price
         );
         

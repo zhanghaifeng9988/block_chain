@@ -9,4 +9,7 @@ libs = ["lib"]
 sepolia = "${SEPOLIA}"
 local = "${LOCAL}" 
 api_key = "${ETHERSCAN_API_KEY}"
+
+# NFTMarket 合约配置
+nftmarket_address = "${NFTMARKET_ADDRESS}"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

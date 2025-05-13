@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
-import "../src/9day_NFTmarket.sol";
-import "../src/9day_thridToken.sol";
+import "../src/tokens/9day_NFTmarket.sol";
+import "../src/tokens/9day_thridToken.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract MockNFT is ERC721 {

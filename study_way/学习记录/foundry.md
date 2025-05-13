@@ -552,3 +552,24 @@ forge test test/Counter.t.sol --fork-url sepolia -vv
 
 5月8日测试作业的一些命令：
  forge test test/BankTest.t.sol  -vvv > test/logs/BankTest.log 2>&1
+
+
+# 5月11日 学习到的内容记录
+## 查看本地钱包的余额
+ cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://127.0.0.1:8545
+
+
+## 命令行下本地测试环境，获取钱包余额的命令
+ curl -X POST http://127.0.0.1:8545 \
+ -H "Content-Type: application/json" \
+--data '{
+    "jsonrpc": "2.0",
+    "method": "eth_getBalance",
+    "params": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", "latest"],
+    "id": 1
+}'
+
+
+
+
+

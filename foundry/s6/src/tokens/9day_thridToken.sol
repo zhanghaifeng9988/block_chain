@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./utils/checkAddress.sol";
+import "../utils/checkAddress.sol";
+import "../interfaces/IERC20Receiver.sol";
 
-interface IERC20Receiver {
+/* interface IERC20Receiver {
     function tokensReceived(
         address sender,
         uint256 amount,
         bytes calldata data
     ) external returns (bytes4);
 }
-
+ */
 contract ExtendERC20Two {
     using AddressUtils for address;
     string public name;
@@ -24,12 +25,24 @@ contract ExtendERC20Two {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    constructor() {
+    address public initialDeployer;
+    bool public deployed;
+
+    constructor(address _deployer) {
         name = "ExtendERC20Two";
         symbol = "EXERC20";
         decimals = 18;
-        totalSupply = 100000000 * (10**uint256(decimals));
-        balances[msg.sender] = totalSupply;
+        totalSupply = 2000 * (10**uint256(decimals));
+        initialDeployer = _deployer;
+        deployed = false;
+    }
+
+    function mintToDeployer() external {
+        require(msg.sender == initialDeployer, "Only initial deployer can call");
+        require(!deployed, "Already deployed");
+        balances[initialDeployer] = totalSupply;
+        deployed = true;
+        emit Transfer(address(0), initialDeployer, totalSupply);
     }
 
     function balanceOf(address _owner) public view returns (uint256 balance) {
@@ -62,26 +75,7 @@ contract ExtendERC20Two {
         return true;
     }
 
-    // 原始 transferWithCallback 函数
-    function transferWithCallback(address _to, uint256 _value) public returns (bool) {
-        require(_to != address(0), "Invalid Address");
-        require(balances[msg.sender] >= _value, "ERC20: transfer amount exceeds balance");
-
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
-
-        if (_to.isContract()) {
-            try IERC20Receiver(_to).tokensReceived(msg.sender, _value, "") returns (bytes4 retval) {
-                require(retval == IERC20Receiver.tokensReceived.selector, "Invalid callback");
-            } catch {
-                revert("ERC20: tokensReceived callback failed");
-            }
-        }
-        return true;
-    }
-
-    // 新增带数据的 transferWithData 函数
+    // 统一使用IERC20Receiver1接口的转账函数
     function transferWithData(
         address _to,
         uint256 _value,
@@ -95,8 +89,8 @@ contract ExtendERC20Two {
         emit Transfer(msg.sender, _to, _value);
 
         if (_to.isContract()) {
-            try IERC20Receiver(_to).tokensReceived(msg.sender, _value, _data) returns (bytes4 retval) {
-                require(retval == IERC20Receiver.tokensReceived.selector, "Invalid callback");
+            try IERC20Receiver1(_to).tokensReceived(msg.sender, _value, _data) returns (bytes4 retval) {
+                require(retval == IERC20Receiver1.tokensReceived.selector, "Invalid callback");
             } catch {
                 revert("ERC20: tokensReceived callback failed");
             }

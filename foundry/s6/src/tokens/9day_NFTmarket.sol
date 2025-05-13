@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "./9day_thridToken.sol";
+import "../tokens/9day_thridToken.sol";
+import "../interfaces/IERC20Receiver.sol";
 
-contract NFTMarket is IERC721Receiver, IERC20Receiver {
+contract NFTMarket is IERC721Receiver, IERC20Receiver1 {
     struct Listing { // NFT 信息
         address seller;
         address nftAddress;
@@ -152,12 +153,12 @@ contract NFTMarket is IERC721Receiver, IERC20Receiver {
             listing.price
         );
         
-        return IERC20Receiver.tokensReceived.selector;
-    }
+        return IERC20Receiver1.tokensReceived.selector;
+     }
     
     // 支持接口查询
     function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
-        return interfaceId == type(IERC20Receiver).interfaceId || 
+        return interfaceId == type(IERC20Receiver1).interfaceId || 
                interfaceId == type(IERC721Receiver).interfaceId;
     }
 }

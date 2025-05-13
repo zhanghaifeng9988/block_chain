@@ -16,3 +16,4 @@ contract Counter {
         console.log("Incremented the number to: ", number);
     }
 }
+

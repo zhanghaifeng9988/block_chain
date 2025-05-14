@@ -89,7 +89,7 @@ const connectWallet = async () => {
     }
 
     //读取钱包中，账户的信息
-    // 请求账户访问权限
+    // 请求账户访问权限  //eth_requestAccounts 这是前端连接钱包的请求方法，不含交易
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     account.value = accounts[0]
     isConnected.value = true

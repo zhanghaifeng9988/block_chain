@@ -554,6 +554,87 @@ forge test test/Counter.t.sol --fork-url sepolia -vv
  forge test test/BankTest.t.sol  -vvv > test/logs/BankTest.log 2>&1
 
 
+
+5月9日 学习到的内容记录
+
+第三道题，作业内容
+1. 在sepolia中部署了D:\blockchain\foundry\s6\src\tokens\9day_fourthToken.sol合约，配合nftmarket合约的，token合约。
+部署情况如下：
+ forge script script/DeployBuyNFT.s.sol --rpc-url  https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
+== Logs ==
+  Token deployed to: 0x2887a24C331FDbc3D8638fFF98b7997965C085d5
+✅  [Success] Hash: 0x770903d898f8d856da52be7fbf0173c67597fbc6d51fe2cff3c70b913d6
+dc9b5
+Contract Address: 0x2887a24C331FDbc3D8638fFF98b7997965C085d5
+Block: 8325666
+Paid: 0.010490602940908075 ETH (1414505 gas * 7.416448115 gwei)
+
+✅ Sequence #1 on sepolia | Total Paid: 0.010490602940908075 ETH (1414505 gas * ag 7.416448115 gwei)
+vg 7.416448115 gwei)
+
+
+2. 在sepolia中部署D:\blockchain\foundry\s6\src\tokens\9day_NFTmarket.sol合约，
+部署情况如下：
+forge script script/DeployNFTMarket.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
+
+== Logs ==
+  NFTMarket deployed to: 0x75cFefc86d4e1E9e9d570370776818b6639fa606
+##### sepolia
+✅  [Success] Hash: 0xc55413c7d66f8dd96ba89b44c02f4a5a5bbd644275cb11b375e5791cdd
+fb927
+Contract Address: 0x75cFefc86d4e1E9e9d570370776818b6639fa606
+
+
+3. 在sepolia部署授权脚本
+forge script script/ApproveNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
+日志如下：
+Compiler run successful!
+Warning: Detected artifacts built from source files that no longer exist. Run `
+forge clean` to make sure builds are in sync with project files.
+ - D:/blockchain/foundry/s6\src/tokens/TestNFT.sol
+ - D:/blockchain/foundry/s6\script/DeployToken.s.sol
+Enter keystore password:
+Script ran successfully.
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155111
+
+Estimated gas price: 7.347196893 gwei
+
+Estimated total gas used for script: 68261
+
+Estimated amount required: 0.000501527007113073 ETH
+
+==========================
+
+##### sepolia
+✅  [Success] Hash: 0x9fe7844ec799249b2311aeb64a9b3429cefbdc26008465f5a06234adac
+44b10f
+Block: 8325952
+Paid: 0.000165713730580975 ETH (46675 gas * 3.550374517 gwei)
+
+✅ Sequence #1 on sepolia | Total Paid: 0.000165713730580975 ETH (46675 gas * av 3.550374517 gwei)
+g 3.550374517 gwei)
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+**这意味着你的NFT已经授权给市场合约（0x75cFefc86d4e1E9e9d570370776818b6639fa606）操作了。**
+
+
+4. NFT上架脚本执行
+forge script script/ListNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
+
+
 # 5月11日 学习到的内容记录
 ## 查看本地钱包的余额
  cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://127.0.0.1:8545

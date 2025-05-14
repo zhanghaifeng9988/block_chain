@@ -2314,7 +2314,7 @@ contract Counter is ICounter {
     }
 }
 
-//定义对外的接口
+//使用接口配套地址参数，调用实现接口的合约，**实现合约间交互**
 //与合约Counter交互，中介功能，帮助其他代码去和 Counter 合约打交道。
 contract MyContract {
     function incrementCounter(address  _counter)  external {

@@ -23,9 +23,11 @@ const anvilChain = {
   },
 }
 
+// ========== 合约地址 ==========
 const tokenAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const bankAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
+// ========== 响应式状态 ==========
 const isConnected = ref(false)
 const account = ref('')
 const tokenBalance = ref('0')
@@ -33,16 +35,26 @@ const bankBalance = ref('0')
 const amount = ref('')
 const isLoading = ref(false)
 
+// ========== 计算属性 ==========
+// 缩短地址显示（0x1234...5678）
 const shortAddress = computed(() => {
   if (!account.value) return ''
   return `${account.value.slice(0, 6)}...${account.value.slice(-4)}`
 })
 
+// ========== Viem客户端 ==========
+// 公共客户端（用于读取链上数据）
 const publicClient = createPublicClient({
   chain: anvilChain,
   transport: custom(window.ethereum)
 })
 
+
+// ========== 主要函数 ==========
+
+/**
+ * 连接钱包函数
+ */
 const connectWallet = async () => {
   try {
     const provider = await detectEthereumProvider()
@@ -51,7 +63,7 @@ const connectWallet = async () => {
       return
     }
 
-    // 切换到正确的链
+    // 尝试切换到正确的链（Anvil本地链）
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -76,6 +88,8 @@ const connectWallet = async () => {
       }
     }
 
+    //读取钱包中，账户的信息
+    // 请求账户访问权限
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     account.value = accounts[0]
     isConnected.value = true
@@ -83,15 +97,19 @@ const connectWallet = async () => {
     // 监听账户变化
     window.ethereum.on('accountsChanged', (accounts) => {
       account.value = accounts[0]
-      updateBalances()
+      updateBalances()// 账户变化时更新余额
     })
 
+    // 初始更新余额
     await updateBalances()
   } catch (error) {
     console.error('连接钱包失败:', error)
   }
 }
 
+/**
+ * 更新代币和银行余额
+ */
 const updateBalances = async () => {
   try {
     // 获取 Token 余额
@@ -116,6 +134,9 @@ const updateBalances = async () => {
   }
 }
 
+/**
+ * 存款函数
+ */
 const deposit = async () => {
   if (!amount.value) return
   isLoading.value = true
@@ -186,6 +207,8 @@ const withdraw = async () => {
   }
 }
 
+// ========== 生命周期钩子 ==========
+// 组件挂载时检查是否已连接钱包
 onMounted(async () => {
   const provider = await detectEthereumProvider()
   if (provider) {

@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import {Script} from "forge-std/Script.sol";
+
+interface INFTMarket {
+    function buyNFT(address nftContract, uint256 tokenId) external payable;
+    function getListing(address nftContract, uint256 tokenId) external view returns (address seller, uint256 price);
+}
+
+contract BuyNFTScript is Script {
+    address constant NFT_CONTRACT = 0xF53701FF88DEaeBb83202F1e21E166f8951E093d;
+    address constant MARKET_ADDRESS = 0x75cFefc86d4e1E9e9d570370776818b6639fa606;
+    
+    uint256 constant TOKEN_ID = 1;
+    uint256 constant PRICE = 0.00001 ether;
+
+    function run() external {
+        // 先检查NFT是否还在上架
+        INFTMarket market = INFTMarket(MARKET_ADDRESS);
+        (address seller, uint256 price) = market.getListing(NFT_CONTRACT, TOKEN_ID);
+        require(seller != address(0), "NFT not listed");
+        require(price == PRICE, "Price mismatch");
+
+        // 从keystore获取私钥并开始广播
+        vm.startBroadcast();
+
+        // 调用市场合约的buyNFT函数购买NFT
+        market.buyNFT{value: price}(NFT_CONTRACT, TOKEN_ID);
+
+        vm.stopBroadcast();
+    }
+}

@@ -13,7 +13,7 @@ contract ListNFTScript is Script {
     
     // 设置要上架的NFT的Token ID和价格
     uint256 constant TOKEN_ID = 1; // 替换为你要上架的NFT的Token ID
-    uint256 constant PRICE = 0.01 ether; // 设置价格为0.01 ETH
+    uint256 constant PRICE = 0.00001 ether; // 设置价格为0.00001 ETH
 
     function run() external {
         // 从keystore获取私钥并开始广播

@@ -633,6 +633,41 @@ ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
 4. NFT上架脚本执行
 forge script script/ListNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
 
+日志记如下：
+Script ran successfully.
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155111
+
+Estimated gas price: 5.941940412 gwei
+
+Estimated total gas used for script: 139094
+
+Estimated amount required: 0.000826488259666728 ETH
+
+==========================
+
+##### sepolia
+✅  [Success] Hash: 0xebbf80bfc2920cd3b071d59f5db22f737d4b58ecc7c45876b06062e05e
+8dced5
+Block: 8325975
+Paid: 0.000325956808944276 ETH (100703 gas * 3.236813292 gwei)
+
+✅ Sequence #1 on sepolia | Total Paid: 0.000325956808944276 ETH (100703 gas * ag 3.236813292 gwei)
+vg 3.236813292 gwei)
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+
+5. 购买NFT脚本执行
+forge script script/BuyNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
 
 
 # 5月11日 学习到的内容记录

@@ -10,12 +10,48 @@ const MARKET_ABI = [
 // 连接到Sepolia测试网
 async function main() {
     // 使用HTTP Provider
-    const provider = new ethers.JsonRpcProvider("https://eth-sepolia.public.blastapi.io");
+    const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/b2affe5792cd45bd9b462e8762d352f2");
     
     // 创建合约实例
     const marketContract = new ethers.Contract(MARKET_ADDRESS, MARKET_ABI, provider);
 
     console.log("开始监听NFT市场事件...");
+
+    // 查询历史事件
+    const currentBlock = await provider.getBlockNumber();
+    const fromBlock = currentBlock - 1000; // 查询最近1000个区块
+    
+    console.log(`正在查询从区块 ${fromBlock} 到 ${currentBlock} 的历史事件...`);
+    
+    const listedFilter = marketContract.filters.NFTListed();
+    const boughtFilter = marketContract.filters.NFTBought();
+    
+    const listedEvents = await marketContract.queryFilter(listedFilter, fromBlock);
+    const boughtEvents = await marketContract.queryFilter(boughtFilter, fromBlock);
+    
+    console.log(`找到 ${listedEvents.length} 个上架事件和 ${boughtEvents.length} 个购买事件`);
+    
+    // 处理历史上架事件
+    for (const event of listedEvents) {
+        const [nftContract, tokenId, seller, price] = event.args;
+        console.log("\n历史NFT上架:");
+        console.log(`NFT合约地址: ${nftContract}`);
+        console.log(`Token ID: ${tokenId}`);
+        console.log(`卖家地址: ${seller}`);
+        console.log(`价格: ${ethers.formatEther(price)} ETH`);
+        console.log(`交易哈希: ${event.transactionHash}\n`);
+    }
+    
+    // 处理历史购买事件
+    for (const event of boughtEvents) {
+        const [nftContract, tokenId, buyer, price] = event.args;
+        console.log("\n历史NFT购买:");
+        console.log(`NFT合约地址: ${nftContract}`);
+        console.log(`Token ID: ${tokenId}`);
+        console.log(`买家地址: ${buyer}`);
+        console.log(`成交价格: ${ethers.formatEther(price)} ETH`);
+        console.log(`交易哈希: ${event.transactionHash}\n`);
+    }
 
     // 监听新区块
     provider.on("block", async (blockNumber) => {

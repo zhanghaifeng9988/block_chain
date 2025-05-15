@@ -555,10 +555,17 @@ forge test test/Counter.t.sol --fork-url sepolia -vv
 
 
 
-5月9日 学习到的内容记录
+5月9日 **学习到的内容记录**
 
-第三道题，作业内容
+第三道题，作业内容 写一个脚本检测NFTMARKET合约的交易情况。
+
+**注意**  因为要监听链上交易行为：需要对应的API，要去手动申请API，
+https://developer.metamask.io/key/active-endpoints
+也**可以使用当前测试网上的rpc**。
+
 1. 在sepolia中部署了D:\blockchain\foundry\s6\src\tokens\9day_fourthToken.sol合约，配合nftmarket合约的，token合约。
+这个暂时没用到，因为后期用eth交易NFT，所以token合约没用到。就当学习了解了，可以把token转到钱包中。
+
 部署情况如下：
  forge script script/DeployBuyNFT.s.sol --rpc-url  https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
 
@@ -588,6 +595,8 @@ Contract Address: 0x75cFefc86d4e1E9e9d570370776818b6639fa606
 
 
 3. 在sepolia部署授权脚本
+**这意味着你的NFT已经授权给市场合约（0x75cFefc86d4e1E9e9d570370776818b6639fa606）操作了。**
+
 forge script script/ApproveNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
 
 日志如下：
@@ -627,7 +636,7 @@ g 3.550374517 gwei)
 
 ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
 
-**这意味着你的NFT已经授权给市场合约（0x75cFefc86d4e1E9e9d570370776818b6639fa606）操作了。**
+
 
 
 4. NFT上架脚本执行

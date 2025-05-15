@@ -131,7 +131,7 @@ event	             "Deposit"	                      事件名称。
 args	            见下方	                        事件参数（包含存款用户和金额）。
 
 
-1. **事件参数（args）**
+2. **事件参数（args）**
 
 {
     "0": "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2", // 用户地址（索引参数）
@@ -3504,7 +3504,7 @@ https://ipfs.io/ipfs/bafybeigsgpotx42rkjshybdbkcxjhmahr3by3yztkm6aqnxsgtrhmlwyye
 json上传地址：app.pinata.cloud/ipfs/files
 文件hash值：bafkreigdqv2covgzhbvt2imab5sktlhidngvgn2p5keeqr7mv2fisyiihq
 文件ID值：0196af9c-a112-7f11-ba71-ad088b99a393
-验证一下文件上传情况：查看链接
+**验证一下**文件上传情况：查看链接
 https://ipfs.io/ipfs/bafkreigdqv2covgzhbvt2imab5sktlhidngvgn2p5keeqr7mv2fisyiihq
 
 

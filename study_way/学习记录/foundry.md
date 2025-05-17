@@ -695,6 +695,27 @@ forge script script/BuyNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.i
 }'
 
 
+# 5月12日 构建CLI钱包
+构建一个 CLI 钱包作业执行记录：
+node cli-wallet.js
 
+=== 命令行钱包 ===
+功能选项：
+1. 生成新私钥
+2. 查询地址余额（ETH + ERC20）
+3. 发送 ERC20 转账（EIP-1559 交易）
+请输入选项（1/2/3）: 1
+
+=== 生成结果 ===
+私钥（敏感！仅测试使用）: 0x61c1f90a3ae8161c6f0198ce0e362142af89b7d8be4d1318912722becb67836b
+
+对应地址: 0xDD94951DAD7dDe395158b8c06951612aAc49Fb05
+
+--中间需要，metamask给CLI钱包转eth和token
+eth用来做交易费，token是CLI钱包需要给合约实际交易得代币
+
+
+--最后CLI钱包给合约转token
+使用软件钱包转账
 
 

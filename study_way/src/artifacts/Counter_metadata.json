@@ -6,31 +6,19 @@
 	"output": {
 		"abi": [
 			{
-				"anonymous": false,
+				"inputs": [],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
 				"inputs": [
 					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "sender",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "bytes",
-						"name": "data",
-						"type": "bytes"
+						"internalType": "uint256",
+						"name": "x",
+						"type": "uint256"
 					}
 				],
-				"name": "FallbackCalled",
-				"type": "event"
-			},
-			{
-				"stateMutability": "payable",
-				"type": "fallback"
-			},
-			{
-				"inputs": [],
-				"name": "count",
+				"name": "add",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -50,20 +38,16 @@
 			},
 			{
 				"inputs": [],
-				"name": "sender",
+				"name": "get",
 				"outputs": [
 					{
-						"internalType": "address",
+						"internalType": "uint256",
 						"name": "",
-						"type": "address"
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
 				"type": "function"
-			},
-			{
-				"stateMutability": "payable",
-				"type": "receive"
 			}
 		],
 		"devdoc": {
@@ -79,7 +63,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/5day_call&delegatecall.sol": "Counter"
+			"study_way/src/2day_firstContract.sol": "Counter"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -93,12 +77,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"study_way/src/5day_call&delegatecall.sol": {
-			"keccak256": "0xc35fd745bf4c292a7ff0d9d28583863141e1214adf6e01790f24844997fa5ca2",
+		"study_way/src/2day_firstContract.sol": {
+			"keccak256": "0x2c749da77672109b5d7ff39f2fa76fca3c7d9ea13b693e145a0cb7dd73e95fd3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://5499c7477d2b4f8cac0dcddbffe3f6c3316647653cfaaf9cdb5d3ccac5637bbd",
-				"dweb:/ipfs/QmNTGS8ukCcKtURh7G2EWVqv4uWWKmkeiEoabHD1DgKDio"
+				"bzz-raw://dcc6c3292d213fa746af3b754370d510dc67f2d7dbbfb923dce1ae8a83460705",
+				"dweb:/ipfs/QmXr39NV1cv8xU3WYV22QfsPXmyXbZ4xPYLpSy5zqDHJXQ"
 			]
 		}
 	},

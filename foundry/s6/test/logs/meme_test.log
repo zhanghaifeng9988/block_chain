@@ -1,0 +1,182 @@
+No files changed, compilation skipped
+
+Ran 4 tests for test/MEME_Inscription.t.sol:MEME_InscriptionTest
+[PASS] testDeployInscription() (gas: 208324)
+Traces:
+  [208324] MEME_InscriptionTest::testDeployInscription()
+    ├─ [0] VM::startPrank(creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8])
+    │   └─ ← [Return]
+    ├─ [185436] MEME_Inscription::deployInscription("xuhai", 1000, 10, 100)
+    │   ├─ [9031] → new <unknown>@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   └─ ← [Return] 45 bytes of code
+    │   ├─ [71526] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ [68833] MEME_Token::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]) [delegatecall]
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ emit MemeDeployed(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, symbol: "xuhai", totalSupply: 1000, perMint: 10, price: 100)
+    │   └─ ← [Return] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    ├─ [0] VM::assertTrue(true, "Token not deployed") [staticcall]
+    │   └─ ← [Return]
+    ├─ [1298] MEME_Inscription::memeInfos(0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3) [staticcall]
+    │   └─ ← [Return] 10, 100, creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8]
+    ├─ [0] VM::assertEq(10, 10, "Wrong perMint") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::assertEq(100, 100, "Wrong price") [staticcall]
+    │   └─ ← [Return]
+    ├─ [2702] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::minted() [staticcall]
+    │   ├─ [2536] MEME_Token::minted() [delegatecall]
+    │   │   └─ ← [Return] 0
+    │   └─ ← [Return] 0
+    ├─ [0] VM::assertEq(0, 0, "Wrong initial minted amount") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::assertEq(creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8], creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8], "Wrong creator") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+[PASS] testMintInscription() (gas: 293610)
+Traces:
+  [293610] MEME_InscriptionTest::testMintInscription()
+    ├─ [0] VM::startPrank(creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8])
+    │   └─ ← [Return]
+    ├─ [185436] MEME_Inscription::deployInscription("xuhai", 1000, 10, 100)
+    │   ├─ [9031] → new <unknown>@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   └─ ← [Return] 45 bytes of code
+    │   ├─ [71526] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ [68833] MEME_Token::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]) [delegatecall]
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ emit MemeDeployed(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, symbol: "xuhai", totalSupply: 1000, perMint: 10, price: 100)
+    │   └─ ← [Return] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02])
+    │   └─ ← [Return]
+    ├─ [74692] MEME_Inscription::mintInscription{value: 1000}(0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3)
+    │   ├─ [636] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::totalSupply() [staticcall]
+    │   │   ├─ [470] MEME_Token::totalSupply() [delegatecall]
+    │   │   │   └─ ← [Return] 1000
+    │   │   └─ ← [Return] 1000
+    │   ├─ [2702] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::minted() [staticcall]
+    │   │   ├─ [2536] MEME_Token::minted() [delegatecall]
+    │   │   │   └─ ← [Return] 0
+    │   │   └─ ← [Return] 0
+    │   ├─ [48614] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::mint(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], 10)
+    │   │   ├─ [48439] MEME_Token::mint(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], 10) [delegatecall]
+    │   │   │   ├─ emit MintCalled(caller: MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], owner: MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], to: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], amount: 10)
+    │   │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], value: 10)
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ [55] MEME_InscriptionTest::receive{value: 10}()
+    │   │   └─ ← [Stop]
+    │   ├─ [0] creator::fallback{value: 990}()
+    │   │   └─ ← [Stop]
+    │   ├─ emit MemeMinted(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, minter: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], amount: 10)
+    │   └─ ← [Stop]
+    ├─ [1023] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::balanceOf(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02]) [staticcall]
+    │   ├─ [851] MEME_Token::balanceOf(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02]) [delegatecall]
+    │   │   └─ ← [Return] 10
+    │   └─ ← [Return] 10
+    ├─ [0] VM::assertEq(10, 10, "Wrong token balance") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::assertEq(100000000000000000990 [1e20], 100000000000000000990 [1e20], "Wrong creator fee") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::assertEq(100000000000000000010 [1e20], 100000000000000000010 [1e20], "Wrong platform fee") [staticcall]
+    │   └─ ← [Return]
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+[PASS] test_RevertWhen_InsufficientPayment() (gas: 214419)
+Traces:
+  [214419] MEME_InscriptionTest::test_RevertWhen_InsufficientPayment()
+    ├─ [0] VM::startPrank(creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8])
+    │   └─ ← [Return]
+    ├─ [185436] MEME_Inscription::deployInscription("xuhai", 1000, 10, 100)
+    │   ├─ [9031] → new <unknown>@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   └─ ← [Return] 45 bytes of code
+    │   ├─ [71526] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ [68833] MEME_Token::initialize("xuhai", 1000, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]) [delegatecall]
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ emit MemeDeployed(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, symbol: "xuhai", totalSupply: 1000, perMint: 10, price: 100)
+    │   └─ ← [Return] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02])
+    │   └─ ← [Return]
+    ├─ [0] VM::expectRevert(custom error 0xf28dceb3:  Insufficient payment)
+    │   └─ ← [Return]
+    ├─ [6164] MEME_Inscription::mintInscription{value: 500}(0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3)
+    │   ├─ [636] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::totalSupply() [staticcall]
+    │   │   ├─ [470] MEME_Token::totalSupply() [delegatecall]
+    │   │   │   └─ ← [Return] 1000
+    │   │   └─ ← [Return] 1000
+    │   ├─ [2702] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::minted() [staticcall]
+    │   │   ├─ [2536] MEME_Token::minted() [delegatecall]
+    │   │   │   └─ ← [Return] 0
+    │   │   └─ ← [Return] 0
+    │   └─ ← [Revert] Insufficient payment
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+[PASS] test_RevertWhen_MintExceedsTotalSupply() (gas: 296604)
+Traces:
+  [296604] MEME_InscriptionTest::test_RevertWhen_MintExceedsTotalSupply()
+    ├─ [0] VM::startPrank(creator: [0x2190d584E30F4a2396C1487Aa784428f2068CBE8])
+    │   └─ ← [Return]
+    ├─ [185436] MEME_Inscription::deployInscription("xuhai", 15, 10, 100)
+    │   ├─ [9031] → new <unknown>@0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    │   │   └─ ← [Return] 45 bytes of code
+    │   ├─ [71526] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::initialize("xuhai", 15, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f])
+    │   │   ├─ [68833] MEME_Token::initialize("xuhai", 15, MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f]) [delegatecall]
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ emit MemeDeployed(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, symbol: "xuhai", totalSupply: 15, perMint: 10, price: 100)
+    │   └─ ← [Return] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02])
+    │   └─ ← [Return]
+    ├─ [77192] MEME_Inscription::mintInscription{value: 1000}(0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3)
+    │   ├─ [636] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::totalSupply() [staticcall]
+    │   │   ├─ [470] MEME_Token::totalSupply() [delegatecall]
+    │   │   │   └─ ← [Return] 15
+    │   │   └─ ← [Return] 15
+    │   ├─ [2702] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::minted() [staticcall]
+    │   │   ├─ [2536] MEME_Token::minted() [delegatecall]
+    │   │   │   └─ ← [Return] 0
+    │   │   └─ ← [Return] 0
+    │   ├─ [48614] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::mint(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], 10)
+    │   │   ├─ [48439] MEME_Token::mint(buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], 10) [delegatecall]
+    │   │   │   ├─ emit MintCalled(caller: MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], owner: MEME_Inscription: [0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f], to: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], amount: 10)
+    │   │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], value: 10)
+    │   │   │   └─ ← [Stop]
+    │   │   └─ ← [Return]
+    │   ├─ [55] MEME_InscriptionTest::receive{value: 10}()
+    │   │   └─ ← [Stop]
+    │   ├─ [0] creator::fallback{value: 990}()
+    │   │   └─ ← [Stop]
+    │   ├─ emit MemeMinted(token: 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3, minter: buyer: [0x0fF93eDfa7FB7Ad5E962E4C0EdB9207C03a0fe02], amount: 10)
+    │   └─ ← [Stop]
+    ├─ [0] VM::expectRevert(custom error 0xf28dceb3:  Exceeds total supply)
+    │   └─ ← [Return]
+    ├─ [3680] MEME_Inscription::mintInscription{value: 1000}(0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3)
+    │   ├─ [636] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::totalSupply() [staticcall]
+    │   │   ├─ [470] MEME_Token::totalSupply() [delegatecall]
+    │   │   │   └─ ← [Return] 15
+    │   │   └─ ← [Return] 15
+    │   ├─ [702] 0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3::minted() [staticcall]
+    │   │   ├─ [536] MEME_Token::minted() [delegatecall]
+    │   │   │   └─ ← [Return] 10
+    │   │   └─ ← [Return] 10
+    │   └─ ← [Revert] Exceeds total supply
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    └─ ← [Stop]
+
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 1.19ms (1.24ms CPU time)
+
+Ran 1 test suite in 17.94ms (1.19ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

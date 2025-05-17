@@ -1,3 +1,33 @@
+# 前置概念  
+## RLP（Recursive Length Prefix，递归长度前缀）编码是以太坊中用于**序列化数据结构的核心编码方案**，专为区块链设计。
+
+它的核心目标是以紧凑、无歧义的方式**将任意嵌套的数据结构转换为字节序列**，同时避免复杂的类型标记（如JSON/XML中的标签）。
+
+**是原始数据结构的编码方案**，可以用于任何需要序列化的数据结构
+
+
+## abi.encode 
+abi.encode 是 Solidity 中用于 将函数参数或数据**按 ABI（应用二进制接口）标准**
+**编码为字节序列** 的核心函数。
+
+
+event Log(bytes data);
+function emitLog(uint value) public {
+    emit Log(abi.encode(value));
+}
+
+**上面的的代码**，表示：将 uint 类型的值 value 按照 ABI 编码为字节序列。
+
+
+
+bytes memory data = abi.encodeWithSignature("transfer(address,uint256)", to, amount);
+(bool success, ) = token.call(data);
+
+**上面的代码**，表示：将函数名为 transfer 的参数（to 和 amount）按照 ABI 编码为字节序列。
+call函数用于执行智能合约的交易，将字节序列作为参数。
+data将是1个字节形式，包含：函数签名（4个字节）+ 32字节的 to 地址 + 32字节的 amount 值。
+
+
 # 签名定义
 1. 身份验证（Who）
 - 去中心化登录（如 "Sign-In with Ethereum"）
@@ -30,7 +60,9 @@
 
 
 ## 利用EIP191
-EIP191协议中得encoding Spec✅ "增加0x19前缀，表示这是结构化签名数据（可能是消息或安全交易编码），而不仅是原始交易数据
+EIP191协议中得encoding Spec✅ **"增加0x19前缀**，表示这**是结构化签名数据**（可能是消息或安全交易编码），
+而不仅是原始交易数据；
+
 核心区别
 | 场景 | 数据格式示例 | 用途 | 
 |------|-----------|-------| 
@@ -41,7 +73,7 @@ EIP191协议中得encoding Spec✅ "增加0x19前缀，表示这是结构化签�
 ![1747219862369](image/signature/1747219862369.png)
 EIP191: 区分交易签名和其他信息签名
 
-• 0x19 初始字节: 这个初始字节确保 signed_data 不是 RLP 编码,从而防止签名数据被误解为以太坊交易。
+• 0x19 初始字节: 这个初始字节确保 signed_data **不是 RLP 编码**,从而防止签名数据被误解为以太坊交易。
 
 • <1 byte version>:可以自行定义签名数据版本,占用一字节,可以是0;
 
@@ -49,11 +81,12 @@ EIP191: 区分交易签名和其他信息签名
 
 • <data to sign>:原始签名数据;
 
+
 ## 原始交易数据（Raw Transaction Data）
 在区块链中，原始交易数据（Raw Transaction Data） 指的是未经结构化处理、直接用于链上执行的交易二进制数据。
 **格式：通常为RLP**（Recursive Length Prefix）编码的字节序列。
-示例结构：
 
+示例结构：
 {
   nonce: 0x1,
   gasPrice: 0x09184e72a000,
@@ -124,6 +157,7 @@ sequenceDiagram
         前端->>前端: 10. 验证hash与签名匹配
     end
 ```
+
 
 
 # 去中心化得用户身份认证（后端）

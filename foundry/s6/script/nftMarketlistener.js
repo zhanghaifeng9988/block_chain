@@ -19,7 +19,7 @@ async function main() {
 
     // 查询历史事件
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = currentBlock - 1000; // 查询最近1000个区块
+    const fromBlock = currentBlock - 100000; // 查询最近1000个区块
     
     console.log(`正在查询从区块 ${fromBlock} 到 ${currentBlock} 的历史事件...`);
     

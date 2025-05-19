@@ -2514,10 +2514,10 @@ contract B is A {
 与合约实际 ETH 余额无自动关联，完全由代码逻辑控制。
 
 
-# Calldata 的用途
+# calldata 的用途
 ## (1) 交易（Transaction）中调用合约
 当你在钱包（如 MetaMask）或 Remix 中调用合约函数时，底层会生成 Calldata 并附加到交易中。
-## Calldata 是根据 ABI 规则编码后的二进制数据，实际传递给合约的字节码。
+## calldata 是根据 ABI 规则编码后的二进制数据，实际传递给合约的字节码。
 
 **一个完整的 Calldata  包含两部分：**
 
@@ -3539,3 +3539,42 @@ https://testnets.opensea.io/zh-CN/collection/mynft-13737
 https://testnets.opensea.io/zh-CN/collection/mynft-13740
 
 
+# 瞬时存储
+
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Contract as 智能合约
+    participant EVM as EVM Transient Storage
+
+    User ->> Contract: 发起交易（调用函数A）
+    Contract ->> EVM: transientStorage写入数据<br>(key: "temp", value: 123)
+    Note left of EVM: 数据在交易内全局可读
+
+    Contract ->> Contract: 调用内部函数B
+    Contract ->> EVM: 从transientStorage读取<br>(key: "temp")
+    EVM -->> Contract: 返回 value: 123
+
+    Contract ->> User: 返回最终结果
+    Note right of User: 交易结束，transientStorage自动清除
+```
+
+contract TransientDemo {
+    // Transient Storage 操作（需编译器支持）
+    function setTemp(uint value) external {
+        assembly {
+            // 将数据写入 transient storage
+            tstore(0, value) // key: 0, value: 用户输入
+        }
+    }
+
+    function getTemp() external view returns (uint) {
+        assembly {
+            // 从 transient storage 读取
+            let value := tload(0) // key: 0
+            mstore(0x80, value)
+            return(0x80, 32)
+        }
+    }
+}

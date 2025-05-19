@@ -135,4 +135,3 @@ contract Bank {
         _handleDeposit(msg.sender, msg.value);
     }
 }
-}

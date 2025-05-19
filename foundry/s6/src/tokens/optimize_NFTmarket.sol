@@ -149,4 +149,4 @@ contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1
         return interfaceId == type(IERC20Receiver1).interfaceId || 
                interfaceId == type(IERC721Receiver).interfaceId;
     }
-}
+} 

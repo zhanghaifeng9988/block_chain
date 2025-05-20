@@ -3229,6 +3229,53 @@ ERC1363 是 ERC20 的扩展标准，在代币转账后自动触发接收合约�
     • ERC20 转账应该总是使用Openzeplin 的 SafeERC20 safeTransfer:
 
 
+# msg.sender的一些理解
+```mermaid
+%% 场景1：用户直接调用合约
+sequenceDiagram
+    title 1. 用户直接调用合约
+    participant 用户 as 用户(EOA)
+    participant OwnedToken as OwnedToken合约
+    用户->>OwnedToken: 调用changeName()
+    Note right of OwnedToken: msg.sender=用户地址
+```
+
+```mermaid
+%% 场景2：合约A通过合约B调用
+sequenceDiagram
+    title 2. 合约A通过合约B调用
+    participant 用户 as 用户(EOA)
+    participant TokenCreator as TokenCreator合约
+    participant OwnedToken as OwnedToken合约
+    用户->>TokenCreator: 调用changeName()
+    TokenCreator->>OwnedToken: 直接调用changeName()
+    Note right of OwnedToken: msg.sender = TokenCreator地址
+```
+
+```mermaid
+%% 场景3：使用delegatecall调用
+sequenceDiagram
+    title 3. 使用delegatecall调用
+    participant 用户 as 用户(EOA)
+    participant TokenCreator as TokenCreator合约
+    participant OwnedToken as OwnedToken合约
+    用户->>TokenCreator: 调用foo()
+    TokenCreator->>OwnedToken: delegatecall bar()
+    Note right of OwnedToken: msg.sender = 用户地址（保留原始上下文）
+```
+
+```mermaid
+%% 场景4：使用call调用
+sequenceDiagram
+    title 4. 使用call调用
+    participant 用户 as 用户(EOA)
+    participant TokenCreator as TokenCreator合约
+    participant OwnedToken as OwnedToken合约
+    用户->>TokenCreator: 调用changeNameWithCall()
+    TokenCreator->>OwnedToken: call(changeName)
+    Note right of OwnedToken: msg.sender = TokenCreator地址
+```
+
 
 
 # 第1个ERC20代币合约
@@ -3537,6 +3584,8 @@ https://testnets.opensea.io/zh-CN/collection/mynft-13737
 
 第二次做的：NFT链接：
 https://testnets.opensea.io/zh-CN/collection/mynft-13740
+
+
 
 
 # 瞬时存储

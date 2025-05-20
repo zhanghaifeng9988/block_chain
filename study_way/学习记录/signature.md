@@ -235,3 +235,84 @@ const signature = await wallet.signTypedData(typedData);
 ![1747218661039](image/signature/1747218661039.png)
 
 
+
+```mermaid
+sequenceDiagram
+    title 用户通过 permit 授权 spender 花费代币
+
+    participant 用户 as 用户(EOA)
+    participant Token合约 as Token合约
+
+    %% 用户离线生成签名
+    用户->>用户: 准备消息 (owner, spender, value, nonce, deadline)
+    用户->>用户: 计算 structHash
+    Note right of 用户: structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonce, deadline))
+    用户->>用户: 使用私钥签名 structHash
+    Note right of 用户: 生成 v, r, s
+
+    %% 用户提交签名到合约
+    用户->>Token合约: 调用 permit(owner, spender, value, deadline, v, r, s)
+    
+    %% 合约验证签名
+    Token合约->>Token合约: 计算 structHash
+    Note right of Token合约: structHash = keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, _useNonce(owner), deadline))
+    Token合约->>Token合约: 生成 hash
+    Note right of Token合约: hash = _hashTypedDataV4(structHash)
+    Token合约->>Token合约: 使用 ECDSA.recover(hash, v, r, s) 恢复签名者地址
+    Note right of Token合约: signer = ECDSA.recover(hash, v, r, s)
+    Token合约->>Token合约: 检查 signer 是否等于 owner
+    alt signer 等于 owner
+        Token合约->>Token合约: 更新授权状态
+        Note right of Token合约: _approve(owner, spender, value)
+    else signer 不等于 owner
+        Token合约->>Token合约: 抛出异常 ERC2612InvalidSigner
+        Note right of Token合约: revert ERC2612InvalidSigner(signer, owner)
+    end
+
+    %% 检查签名有效期
+    Token合约->>Token合约: 检查 block.timestamp 是否小于等于 deadline
+    alt block.timestamp <= deadline
+        Token合约->>Token合约: 继续执行
+    else block.timestamp > deadline
+        Token合约->>Token合约: 抛出异常 ERC2612ExpiredSignature
+        Note right of Token合约: revert ERC2612ExpiredSignature(deadline)
+    end
+```
+
+
+
+
+使用 EIP2612 标准（基于 Openzepplin 库）编写一个 Token 合约,
+文件名称叫：PermitToken.sol，token的symbol：zhf_erc2612,name:ERC2612_study
+存放目录：D:\blockchain\foundry\s6\src\tokens
+初始铸造数量是：888，全部转给合约创建者，合约要符合ERC20标准。
+
+
+接下来要完成任务：
+参照这个合约：D:\blockchain\foundry\s6\src\banks\6day_tokenBank.sol
+在D:\blockchain\foundry\s6\src\banks目录中型生成一个bank合约，名字叫做：permit_tokenBank.sol
+要求：添加一个函数 permitDeposit 以支持离线签名授权（permit）进行存款
+
+然后你看我这个目录：D:\blockchain\DAPP\tokenbank-frontend 这是之前做的一个token合约和bank合约融合进行存款提款和查询余额的前端项目，你看一下，能复用的就复用，目的是，将token合约和bank合同换成前面你刚刚帮我生成的两个合约。
+如果可以复用，你需要将这个目录复制一个出来，路径和目录命名是这样 D:\blockchain\DAPP\permit_tokenbank-frontend
+然后我们再部署前面那两个合约，都是本地anvil环境部署合约
+
+
+forge create src/tokens/PermitToken.sol:PermitToken --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url local --broadcast
+
+
+forge create src/banks/permit_tokenBank.sol:PermitTokenBank --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80  --constructor-args 0x5FbDB2315678afecb367f032d93F642f64180aa3 --rpc-url local --broadcast
+
+0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+
+forge inspect foundry/s6/src/banks/permit_tokenBank.sol:PermitTokenBank abi > DAPP/tokenbank-frontend/src/contracts/PermitTokenBank.json
+
+forge build --contracts foundry/s6/src/banks/permit_tokenBank.sol
+
+
+附件图片，是完成：修改 TokenBank 存款合约 ,添加一个函数 permitDeposit 以支持离线签名授权（permit）进行存款, 并在TokenBank前端 加入通过签名存款。 这个内容的结果截图。
+
+
+修改Token 购买 NFT NTFMarket 合约，添加功能 permitBuy() 实现只有离线授权的白名单地址才可以购买 NFT （用自己的名称发行 NFT，再上架） 。白名单具体实现逻辑为：项目方给白名单地址签名，白名单用户拿到签名信息后，传给 permitBuy() 函数，在permitBuy()中判断时候是经过许可的白名单用户，如果是，才可以进行后续购买，否则 revert 。
+
+

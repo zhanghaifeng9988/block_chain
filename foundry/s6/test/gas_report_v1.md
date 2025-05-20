@@ -1,16 +1,3 @@
- forge test --gas-report --match-contract NFTMarketTest
-[⠊] Compiling...
-[⠒] Compiling 1 files with Solc 0.8.26
-[⠢] Solc 0.8.26 finished in 1.00s
-Compiler run successful!
-
-Ran 4 tests for test/NFTMarket.t.sol:NFTMarketTest
-[PASS] testBuyNFT() (gas: 387867)
-[PASS] testFuzzListAndBuy(uint128,address) (runs: 256, μ: 421842, ~: 421862)
-[PASS] testListNFT() (gas: 289957)
-[PASS] testMarketTokenBalance() (gas: 327897)
-Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 460.28ms (460.73ms CPU time)
-
 ╭--------------------------------------------------+-----------------+--------+--------+--------+---------╮
 | src/tokens/9day_NFTmarket.sol:NFTMarket Contract |                 |        |        |        |         |
 +=========================================================================================================+
@@ -66,11 +53,4 @@ Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 460.28ms (460.73ms 
 |---------------------------------------+-----------------+-------+--------+-------+---------|
 | ownerOf                               | 2964            | 2964  | 2964   | 2964  | 518     |
 ╰---------------------------------------+-----------------+-------+--------+-------+---------╯
-
-
-Ran 1 test suite in 548.31ms (460.28ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)
-
-
-
-
 

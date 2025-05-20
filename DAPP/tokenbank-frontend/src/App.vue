@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { createPublicClient, createWalletClient, custom, parseEther, formatEther } from 'viem'
+import { createPublicClient, createWalletClient, custom, parseEther, formatEther, recoverMessageAddress, getContract, parseSignature } from 'viem'
 import { localhost } from 'viem/chains'
 import detectEthereumProvider from '@metamask/detect-provider'
-import TokenBankABI from './contracts/TokenBank.json'
-import TokenABI from './contracts/Token.json'
+import TokenBankArtifact from './contracts/PermitTokenBank.json'
+import TokenArtifact from './contracts/PermitToken.json'
 
 // 自定义本地链配置
 const anvilChain = {
@@ -49,6 +49,8 @@ const publicClient = createPublicClient({
   transport: custom(window.ethereum)
 })
 
+const TokenBankABI = TokenBankArtifact.abi
+const TokenABI = TokenArtifact.abi
 
 // ========== 主要函数 ==========
 
@@ -125,7 +127,7 @@ const updateBalances = async () => {
     const bankBalanceData = await publicClient.readContract({
       address: bankAddress,
       abi: TokenBankABI,
-      functionName: 'getBalance',
+      functionName: 'getDepositRecord',
       args: [account.value]
     })
     bankBalance.value = formatEther(bankBalanceData)
@@ -207,6 +209,129 @@ const withdraw = async () => {
   }
 }
 
+const permitDeposit = async () => {
+  console.log('amount.value 原始值:', amount.value, typeof amount.value)
+  if (!amount.value || isNaN(Number(amount.value))) {
+    alert('请输入合法的存款金额')
+    isLoading.value = false
+    return
+  }
+  isLoading.value = true
+  try {
+    let depositAmount
+    try {
+      depositAmount = parseEther(amount.value.toString())
+    } catch (e) {
+      alert('存款金额格式错误: ' + amount.value)
+      console.error('parseEther error:', e)
+      isLoading.value = false
+      return
+    }
+    const deadline = Math.floor(Date.now() / 1000) + 3600 // 1小时后过期
+
+    // 检查钱包是否连接
+    if (!account.value) {
+      alert('请先连接钱包')
+      isLoading.value = false
+      return
+    }
+
+    let nonce
+    try {
+      nonce = await publicClient.readContract({
+        address: tokenAddress,
+        abi: TokenABI,
+        functionName: 'nonces',
+        args: [account.value]
+      })
+    } catch (e) {
+      alert('获取 nonce 失败: ' + e)
+      console.error('nonce error:', e)
+      isLoading.value = false
+      return
+    }
+
+    // 日志调试
+    console.log('amount.value', amount.value)
+    console.log('depositAmount', depositAmount)
+    console.log('nonce', nonce)
+    console.log('account.value', account.value)
+
+    if (typeof depositAmount === 'undefined' || depositAmount === null) {
+      alert('存款金额无效')
+      isLoading.value = false
+      return
+    }
+    if (typeof nonce === 'undefined' || nonce === null) {
+      alert('获取 nonce 失败，请重试')
+      isLoading.value = false
+      return
+    }
+
+    // 获取链ID
+    const chainId = anvilChain.id
+
+    // 构造 EIP-2612 Permit 签名数据
+    const domain = {
+      name: 'ERC2612_study',
+      version: '1',
+      chainId,
+      verifyingContract: tokenAddress
+    }
+    const types = {
+      Permit: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'deadline', type: 'uint256' }
+      ]
+    }
+    const values = {
+      owner: account.value,
+      spender: bankAddress,
+      value: depositAmount,
+      nonce: nonce,
+      deadline: deadline
+    }
+
+    // 创建 walletClient 实例
+    const walletClient = createWalletClient({
+      chain: anvilChain,
+      transport: custom(window.ethereum),
+      account: account.value
+    })
+
+    // 使用 walletClient.signTypedData 进行签名
+    const signatureHex = await walletClient.signTypedData({
+      account: account.value,
+      domain,
+      types,
+      primaryType: 'Permit',
+      message: values
+    })
+    const { v, r, s } = parseSignature(signatureHex)
+    console.log('signature', signatureHex)
+    console.log('v', v, 'r', r, 's', s)
+
+    // 调用 permitDeposit
+    const hash = await walletClient.writeContract({
+      address: bankAddress,
+      abi: TokenBankABI,
+      functionName: 'permitDeposit',
+      args: [depositAmount, deadline, v, r, s]
+    })
+    await publicClient.waitForTransactionReceipt({ hash })
+    amount.value = ''
+    await updateBalances()
+  } catch (error) {
+    console.error('permit 存款失败:', error)
+    alert('permit 存款失败: ' + error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // ========== 生命周期钩子 ==========
 // 组件挂载时检查是否已连接钱包
 onMounted(async () => {
@@ -259,6 +384,13 @@ onMounted(async () => {
               class="action-btn withdraw"
             >
               取款
+            </button>
+            <button 
+              @click="permitDeposit" 
+              :disabled="isLoading || !amount"
+              class="action-btn deposit"
+            >
+              permit存款
             </button>
           </div>
         </div>

@@ -10,10 +10,11 @@ contract DeployNFTMarket is Script {
         vm.startBroadcast();
 
         // 部署NFTMarket合约
-        // 使用已部署的buyNFT代币合约地址和msg.sender作为参数
+        // 使用已部署的buyNFT代币合约地址、msg.sender作为费用接收地址和签名者
         NFTMarket market = new NFTMarket(
             0x2887a24C331FDbc3D8638fFF98b7997965C085d5, // buyNFT代币合约地址
-            msg.sender                                  // 平台费用接收地址
+            msg.sender,                                 // 平台费用接收地址
+            msg.sender                                  // 签名者地址
         );
         
         // 停止广播

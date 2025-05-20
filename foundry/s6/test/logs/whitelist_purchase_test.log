@@ -1,0 +1,56 @@
+Compiling 1 files with Solc 0.8.26
+Solc 0.8.26 finished in 852.53ms
+Compiler run successful!
+
+Ran 1 test for test/NFTMarket.t.sol:NFTMarketTest
+[PASS] testCompleteWhitelistPurchaseFlow() (gas: 221057)
+Logs:
+  
+=== Initial State ===
+  NFT Information:
+  - NFT ID: 1
+  - NFT Owner: 0x0000000000000000000000000000000000000001
+  - NFT URI: test-uri
+  
+Token Balances:
+  - Seller Address: 0x0000000000000000000000000000000000000001
+  - Seller Balance: 1000
+  - Buyer Address: 0x0000000000000000000000000000000000000002
+  - Buyer Balance: 1000
+  - Fee Recipient Address: 0x0000000000000000000000000000000000000003
+  - Fee Recipient Balance: 0
+  
+=== After Listing ===
+  Listing Information:
+  - NFT Price: 100
+  - Seller Address: 0x0000000000000000000000000000000000000001
+  - Listing Time: 1
+  
+=== Whitelist Signature Information ===
+  - Signer Address: 0xe05fcC23807536bEe418f142D19fa0d21BB0cfF7
+  - Signature Expiry: 3601
+  - Signature Message Hash: 0xda6279e66c8eb2dc6970e8c2510c9aae8487bd1f1d1d45310648870ee53dff4f
+  
+=== After Purchase ===
+  NFT Transfer Information:
+  - NFT ID: 1
+  - New Owner: 0x0000000000000000000000000000000000000002
+  - Transfer Time: 1
+  
+Token Transfer Information:
+  - Buyer Payment Amount: 100
+  - Seller Receipt Amount: 98
+  - Platform Fee: 2
+  
+Final Balances:
+  - Seller Balance: 1098
+  - Buyer Balance: 900
+  - Fee Recipient Balance: 2
+  
+=== Market Status ===
+  - NFT Delisted: Yes
+  - Current Price: 0
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 6.56ms (5.66ms CPU time)
+
+Ran 1 test suite in 15.91ms (6.56ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

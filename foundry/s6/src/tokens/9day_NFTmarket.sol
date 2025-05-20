@@ -6,13 +6,22 @@ import "../../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.
 import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 import "../../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
-import "../tokens/9day_thridToken.sol";
+import "../tokens/9day_fourthToken.sol";
 import "../interfaces/IERC20Receiver.sol";
 
 contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1 {
     struct Listing {
         address seller;
         uint256 price;
+    }
+
+    // 白名单验证相关的结构体
+    struct Permit {
+        address buyer;
+        uint256 deadline;
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
     }
 
     // NFT合约地址 => tokenId => 上架信息
@@ -27,15 +36,20 @@ contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1
     // ERC20代币合约
     ExtendERC20Two public erc20Token;
 
+    // 白名单验证相关的状态变量
+    address public signer; // 项目方签名地址
+
     event NFTListed(address indexed nftContract, uint256 indexed tokenId, address indexed seller, uint256 price);
     event NFTBought(address indexed nftContract, uint256 indexed tokenId, address indexed buyer, uint256 price);
     event NFTUnlisted(address indexed nftContract, uint256 indexed tokenId, address indexed seller);
     event PlatformFeeUpdated(uint256 newFeePercentage);
     event FeeRecipientUpdated(address newFeeRecipient);
+    event SignerUpdated(address newSigner);
 
-    constructor(address _erc20Token, address _feeRecipient) {
+    constructor(address _erc20Token, address _feeRecipient, address _signer) {
         erc20Token = ExtendERC20Two(_erc20Token);
         feeRecipient = _feeRecipient;
+        signer = _signer;
         _transferOwnership(msg.sender);
     }
 
@@ -53,21 +67,50 @@ contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1
         emit NFTListed(nftContract, tokenId, msg.sender, price);
     }
 
-    // 购买NFT
-    function buyNFT(address nftContract, uint256 tokenId) external nonReentrant {
+    // 使用白名单购买NFT
+    function permitBuy(
+        address nftContract,
+        uint256 tokenId,
+        Permit calldata permit
+    ) external nonReentrant {
+        // 验证签名是否过期
+        require(block.timestamp <= permit.deadline, "Permit expired");
+        
+        // 验证签名
+        bytes32 messageHash = keccak256(abi.encodePacked(
+            permit.buyer,
+            permit.deadline
+        ));
+        bytes32 hash = keccak256(abi.encodePacked(
+            "\x19Ethereum Signed Message:\n32",
+            messageHash
+        ));
+        
+        address recoveredSigner = ecrecover(hash, permit.v, permit.r, permit.s);
+        require(recoveredSigner == signer, "Invalid signature");
+        
+        // 验证购买者地址
+        require(permit.buyer == msg.sender, "Invalid buyer");
+        
+        // 执行购买逻辑
         Listing storage listing = listings[nftContract][tokenId];
         require(listing.seller != address(0), "Not listed");
         require(msg.sender != listing.seller, "Cannot buy your own NFT");
+        
         // 计算平台费用
         uint256 platformFee = (listing.price * platformFeePercentage) / 100;
         uint256 sellerAmount = listing.price - platformFee;
+        
         // 转移ERC20代币
         require(erc20Token.transferFrom(msg.sender, listing.seller, sellerAmount), "Transfer to seller failed");
         require(erc20Token.transferFrom(msg.sender, feeRecipient, platformFee), "Transfer fee failed");
+        
         // 转移NFT
         IERC721(nftContract).transferFrom(listing.seller, msg.sender, tokenId);
+        
         // 删除上架信息
         delete listings[nftContract][tokenId];
+        
         emit NFTBought(nftContract, tokenId, msg.sender, listing.price);
     }
 
@@ -92,6 +135,13 @@ contract NFTMarket is Ownable, ReentrancyGuard, IERC721Receiver, IERC20Receiver1
         require(newFeeRecipient != address(0), "Invalid address");
         feeRecipient = newFeeRecipient;
         emit FeeRecipientUpdated(newFeeRecipient);
+    }
+
+    // 更新签名者地址（仅限管理员）
+    function updateSigner(address newSigner) external onlyOwner {
+        require(newSigner != address(0), "Invalid signer address");
+        signer = newSigner;
+        emit SignerUpdated(newSigner);
     }
 
     //转入NFT给这个合约时候的回调处理机制

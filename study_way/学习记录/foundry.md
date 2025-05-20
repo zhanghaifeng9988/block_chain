@@ -719,16 +719,3 @@ eth用来做交易费，token是CLI钱包需要给合约实际交易得代币
 使用软件钱包转账
 
 
-## 多签
-**作业中，sepolia部署bank的命令**
-forge create    src/banks/myTokenBank.sol:MyTokenBank   --keystore   .keys/hf  --rpc-url https://eth-sepolia.public.blastapi.io  --broadcast   --constructor-args 0xa740eE38BB16e25fd0417f57e00119eb99a05127
-
-rgs 0xa740eE38BB16e25fd0417f57e00119eb99a05127
-[⠊] Compiling...
-No files changed, compilation skipped
-Enter keystore password:
-Deployer: 0x44f08Ed7D8F63b345F0fc512aEcfaA4F16831643
-Deployed to: 0xd98076Ec956cae1fdF9CF89A27cBf4e471AC916D
-Transaction hash: 0x7975ae6681267af7c4cf11fc3d291fbdd985d9c8507ffc4a7eb63c1e4fcd
-7af0
-

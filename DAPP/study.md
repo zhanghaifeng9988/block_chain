@@ -91,34 +91,13 @@ NFT合约地址：0xF53701FF88DEaeBb83202F1e21E166f8951E093d
 - 在 NFTMarket 前端添加检测数据的实时显示；
 - 在 NFTMarket 前端，可以发起购买NFT的操作，并使用buyNFT 这个Token进行购买；而且能连接我本地的钱包metamask，进行购买。
 
-
-## 强制转换当前钱包连接网络到sepolia
-继续报错NFTMarket.vue:367 上架失败：chainID 不匹配
-
-ContractFunctionExecutionError: The current chain of the wallet (id: 10) does not match the target chain for the transaction (id: 11155111 – Sepolia).
-
-Current Chain ID:  10
-Expected Chain ID: 11155111 – Sepolia
- 
-Request Arguments:
-  from:  0x44f08ed7d8f63b345f0fc512aecfaa4f16831643
-  to:    0x75cFefc86d4e1E9e9d570370776818b6639fa606
-  data:  0xdda342bb000000000000000000000000f53701ff88deaebb83202f1e21e166f8951e093d0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000110d9316ec000
-
-
-**解决办法** 强制切换到sepolia
-
-await window.ethereum.request({
-  method: 'wallet_switchEthereumChain',
-  params: [{ chainId: '0xaa36a7' }]
-})
-
-然后再查看当前链ID
-await window.ethereum.request({ method: 'eth_chainId' })
-
-
-
 ## 关键内容记录
+### 手动上架合约
+forge script script/ListNFT.s.sol --rpc-url https://eth-sepolia.public.blastapi.io --broadcast --keystore .keys/hf
+
+
+
+
 1. web3moda 官网申请的ID,通过创建项目获得ID,网站需要注册后才能创建项目。
 2. **有这个ID才能在前端中**做连接不同类型钱包的选择：fb3301e78d2a273f91bc5457731176c5
 教程地址：https://zhuanlan.zhihu.com/p/667681714

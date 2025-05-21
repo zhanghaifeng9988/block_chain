@@ -7,3 +7,9 @@
 [submodule "foundry/s6/lib/openzeppelin-contracts"]
 	path = foundry/s6/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "foundry/s6/lib/openzeppelin-foundry-upgrades"]
+	path = foundry/s6/lib/openzeppelin-foundry-upgrades
+	url = https://github.com/OpenZeppelin/openzeppelin-foundry-upgrades
+[submodule "foundry/s6/lib/openzeppelin-contracts-upgradeable"]
+	path = foundry/s6/lib/openzeppelin-contracts-upgradeable
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable

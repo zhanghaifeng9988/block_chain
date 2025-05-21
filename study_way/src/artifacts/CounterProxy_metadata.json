@@ -8,9 +8,9 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "x",
-						"type": "uint256"
+						"internalType": "address",
+						"name": "_impl",
+						"type": "address"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -20,13 +20,26 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "i",
+						"name": "n",
 						"type": "uint256"
 					}
 				],
 				"name": "add",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "counter",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -39,18 +52,31 @@
 						"type": "uint256"
 					}
 				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "impl",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
 				"stateMutability": "view",
 				"type": "function"
 			},
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "x",
-						"type": "uint256"
+						"internalType": "address",
+						"name": "_impl",
+						"type": "address"
 					}
 				],
-				"name": "init",
+				"name": "upgradeTo",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -69,7 +95,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"study_way/src/24day_TransparentProxy.sol": "Counter"
+			"study_way/src/24day_proxyUpdate.sol": "CounterProxy"
 		},
 		"evmVersion": "cancun",
 		"libraries": {},
@@ -83,11 +109,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"study_way/src/24day_TransparentProxy.sol": {
-			"keccak256": "0xc3fa10e051e1451a616f293aab5ce41146e8336b094d8d62456fbd1cd46962ed",
+		"study_way/src/24day_proxyUpdate.sol": {
+			"keccak256": "0x942807f8d38961362356436e1459422ed61973a2f786a749fb2b743cc80c2d4b",
+			"license": "UNLICENSED",
 			"urls": [
-				"bzz-raw://57051704dd3cce6b9360ac5b918fd0bbb9deaadcb6347264e6c86f0408213718",
-				"dweb:/ipfs/QmX44281akUd3xWzBUgMXk6LDXGn4ZLv4REyKrXmP4EY6H"
+				"bzz-raw://05f7d56d224eca5662fdf59a5387040c624e495422b6d31ec76935ce9a526c1c",
+				"dweb:/ipfs/QmTHJBe6e2Pvv533DgwjFLZZtQwTCi3SwF2pYJ86wSwYtQ"
 			]
 		}
 	},

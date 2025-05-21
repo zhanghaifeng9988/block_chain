@@ -1,0 +1,95 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/upgradeNFTMarket.t.sol:UpgradeNFTMarketTest
+[PASS] testUpgradeNFTMarket() (gas: 1308224)
+Logs:
+  === 开始设置测试环境 ===
+  1. 部署 NFT 合约
+     - NFT 合约地址: 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
+  2. 部署 ERC20 合约
+     - ERC20 合约地址: 0x2e234DAe75C793f67A35089C9d99245E1C58470b
+     - 部署者代币余额: 2000000000000000000000
+  3. 部署原始市场合约
+     - 原始市场合约地址: 0xF62849F9A0B5Bf2913b396098F7c7019b51A820a
+  4. 部署升级后的市场合约
+     - 升级后市场合约地址: 0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9
+  5. 设置测试账户余额
+     - Alice ETH 余额: 10000000000000000000
+     - Alice 代币余额: 500000000000000000000
+     - Bob ETH 余额: 10000000000000000000
+     - Bob 代币余额: 500000000000000000000
+     - Charlie ETH 余额: 10000000000000000000
+     - Charlie 代币余额: 500000000000000000000
+  === 测试环境设置完成 ===
+
+  === 开始测试 NFT 市场升级流程 ===
+
+  1. 在原始合约上铸造和上架 NFT（ETH 支付）
+     - Alice 铸造了 NFT，tokenId: 1
+     - Alice 上架了 NFT，价格: 1 ETH
+  2. 在原始合约上铸造和上架 NFT（代币支付）
+     - Bob 铸造了 NFT，tokenId: 2
+     - Bob 上架了 NFT，价格: 100 代币
+  3. 验证原始合约上的上架状态
+     - NFT1 卖家地址: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+     - NFT1 合约地址: 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
+     - NFT1 TokenId: 1
+     - NFT1 价格: 1000000000000000000
+     - NFT1 支付代币: 0x0000000000000000000000000000000000000000
+     - NFT2 卖家地址: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+     - NFT2 合约地址: 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
+     - NFT2 TokenId: 2
+     - NFT2 价格: 100000000000000000000
+     - NFT2 支付代币: 0x2e234DAe75C793f67A35089C9d99245E1C58470b
+  4. 在原始合约上购买 NFT（ETH 支付）
+     - Charlie 使用 ETH 购买了 NFT1
+     - Charlie ETH 余额: 9000000000000000000
+  5. 在原始合约上购买 NFT（代币支付）
+     - Charlie 使用代币购买了 NFT2
+     - Charlie 代币余额: 400000000000000000000
+  6. 验证 NFT 所有权转移
+     - NFT1 所有权已转移到 Charlie
+     - NFT2 所有权已转移到 Charlie
+  7. 在升级后的合约上铸造和上架新的 NFT（使用签名，ETH 支付）
+     - Alice 铸造了新的 NFT，tokenId: 3
+     - Alice 使用签名上架了 NFT，价格: 2 ETH
+  8. 在升级后的合约上铸造和上架新的 NFT（使用签名，代币支付）
+     - Bob 铸造了新的 NFT，tokenId: 4
+     - Bob 使用签名上架了 NFT，价格: 200 代币
+  9. 验证升级后合约的上架状态
+     - NFT3 卖家地址: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+     - NFT3 合约地址: 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
+     - NFT3 TokenId: 3
+     - NFT3 价格: 2000000000000000000
+     - NFT3 支付代币: 0x0000000000000000000000000000000000000000
+     - NFT4 卖家地址: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+     - NFT4 合约地址: 0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
+     - NFT4 TokenId: 4
+     - NFT4 价格: 200000000000000000000
+     - NFT4 支付代币: 0x2e234DAe75C793f67A35089C9d99245E1C58470b
+  10. 在升级后的合约上购买 NFT（ETH 支付）
+     - Charlie 使用 ETH 购买了 NFT3
+     - Charlie ETH 余额: 7000000000000000000
+  11. 在升级后的合约上购买 NFT（代币支付）
+     - Charlie 使用代币购买了 NFT4
+     - Charlie 代币余额: 200000000000000000000
+  12. 验证新 NFT 的所有权转移
+     - NFT3 所有权已转移到 Charlie
+     - NFT4 所有权已转移到 Charlie
+  13. 验证升级前后的状态一致性
+     - NFT1 所有者: 0x0000000000000000000000000000000000000003
+     - NFT2 所有者: 0x0000000000000000000000000000000000000003
+     - NFT3 所有者: 0x0000000000000000000000000000000000000003
+     - NFT4 所有者: 0x0000000000000000000000000000000000000003
+     - Alice ETH 余额: 13000000000000000000
+     - Alice 代币余额: 500000000000000000000
+     - Bob ETH 余额: 10000000000000000000
+     - Bob 代币余额: 800000000000000000000
+     - Charlie ETH 余额: 7000000000000000000
+     - Charlie 代币余额: 200000000000000000000
+  
+=== NFT 市场升级测试完成 ===
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 4.29ms (3.00ms CPU time)
+
+Ran 1 test suite in 20.43ms (4.29ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

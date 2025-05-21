@@ -1,0 +1,51 @@
+Compiler run failed:
+Warning (8760): This declaration has the same name as another declaration.
+  --> src/others/school.sol:86:9:
+   |
+86 |         bool isStudent,
+   |         ^^^^^^^^^^^^^^
+Note: The other declaration is here:
+  --> src/others/school.sol:80:5:
+   |
+80 |     function isStudent(address _student) external view returns (bool) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2519): This declaration shadows an existing declaration.
+  --> src/tokens/ERC721Upgradeable.sol:16:41:
+   |
+16 |     function mintNFT(address recipient, string memory tokenURI) public returns (uint256) {
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+  --> src/tokens/ERC721Upgradeable.sol:29:5:
+   |
+29 |     function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Error (6480): Derived contract must override function "supportsInterface". Two or more base classes define function with same name and parameter types.
+ --> src/tokens/ERC721Upgradeable.sol:8:1:
+  |
+8 | contract ERC721UpgradeableNFT is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable {
+  | ^ (Relevant source part starts here and spans across multiple lines).
+Note: Definition in "ERC721Upgradeable": 
+  --> lib/openzeppelin-contracts-upgradeable/contracts/token/ERC721/ERC721Upgradeable.sol:57:5:
+   |
+57 |     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+Note: Definition in "ERC721URIStorageUpgradeable": 
+  --> lib/openzeppelin-contracts-upgradeable/contracts/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol:27:5:
+   |
+27 |     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, IERC165Upgradeable) returns (bool) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Error (6160): Wrong argument count for function call: 1 arguments given but expected 0.
+  --> test/upgradeNFTMarket.t.sol:34:9:
+   |
+34 |         market.initialize(address(erc20Token));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Error (6160): Wrong argument count for function call: 1 arguments given but expected 0.
+  --> test/upgradeNFTMarket.t.sol:38:9:
+   |
+38 |         marketV2.initialize(address(erc20Token));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

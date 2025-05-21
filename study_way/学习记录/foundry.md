@@ -399,7 +399,7 @@ Transaction hash: 0xb0bbc1f78c647445505ce91711f82e4edb686572a85f2940a6b5750e51f5
 ![1746627701127](image/foundry/1746627701127.png)
 
 2. 后期开源验证
-   如何申请ETHERSCAN_API_KEY，可以直接问AI
+   如何申请ETHERSCAN_API_KEY，可以直接问AI？？？
    **注意事项：** 已经将申请得key写入.env文件中，并且已经source .env文件，**请不要上传到github**。
 
 forge verify-contract 

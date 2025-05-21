@@ -1,0 +1,47 @@
+Compiler run failed:
+Warning (8760): This declaration has the same name as another declaration.
+  --> src/others/school.sol:86:9:
+   |
+86 |         bool isStudent,
+   |         ^^^^^^^^^^^^^^
+Note: The other declaration is here:
+  --> src/others/school.sol:80:5:
+   |
+80 |     function isStudent(address _student) external view returns (bool) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2519): This declaration shadows an existing declaration.
+  --> src/tokens/ERC721Upgradeable.sol:16:41:
+   |
+16 |     function mintNFT(address recipient, string memory tokenURI) public returns (uint256) {
+   |                                         ^^^^^^^^^^^^^^^^^^^^^^
+Note: The shadowed declaration is here:
+  --> src/tokens/ERC721Upgradeable.sol:29:5:
+   |
+29 |     function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable, ERC721URIStorageUpgradeable) returns (string memory) {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Error (7576): Undeclared identifier.
+  --> src/market/NFTMarketUpgradeable.sol:26:17:
+   |
+26 |         require(IERC721(_nftAddress).ownerOf(_tokenId) == _msgSender(), "Not the owner");
+   |                 ^^^^^^^
+
+Error (7576): Undeclared identifier.
+  --> src/market/NFTMarketUpgradeable.sol:27:17:
+   |
+27 |         require(IERC721(_nftAddress).getApproved(_tokenId) ...
+   |                 ^^^^^^^
+
+Error (7576): Undeclared identifier.
+  --> src/market/NFTMarketUpgradeable.sol:27:80:
+   |
+27 |  ... oved(_tokenId) == address(this) || IERC721(_nftAddress).isApprovedForAll(_msg ...
+   |                                         ^^^^^^^
+
+Error (7576): Undeclared identifier.
+  --> src/market/NFTMarketUpgradeable.sol:44:9:
+   |
+44 |         IERC721(_nftAddress).safeTransferFrom(listing.seller, _msgSender(), listing.tokenId);
+   |         ^^^^^^^
+

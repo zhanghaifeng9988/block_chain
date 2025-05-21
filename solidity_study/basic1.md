@@ -3627,3 +3627,70 @@ contract TransientDemo {
         }
     }
 }
+
+
+
+# 代理升级
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CounterProxy
+    participant Implementation
+
+    %% 初始化代理合约
+    Note over User,Implementation: 初始化代理
+    User->>CounterProxy: 部署(Counter地址)
+    CounterProxy->>CounterProxy: 设置impl=Counter地址
+
+    %% 通过代理调用add函数
+    Note over User,Implementation: 代理调用add
+    User->>CounterProxy: add(n)
+    CounterProxy->>Implementation: delegatecall(add(n))
+    Implementation-->>CounterProxy: 执行结果
+    CounterProxy-->>User: 调用成功
+
+    %% 通过代理调用get函数
+    Note over User,Implementation: 代理调用get
+    User->>CounterProxy: get()
+    CounterProxy->>Implementation: delegatecall(get())
+    Implementation-->>CounterProxy: 返回值
+    CounterProxy-->>User: 返回计数器值
+
+    %% 升级实现合约
+    Note over User,Implementation: 升级实现
+    User->>CounterProxy: upgradeTo(CounterV2地址)
+    CounterProxy->>CounterProxy: 更新impl=CounterV2地址
+    CounterProxy-->>User: 升级成功
+```
+
+
+pragma solidity ^0.8.0;
+
+contract CounterProxy {
+    uint public counter;
+    address public impl;
+
+    constructor(address _impl) {
+        impl = _impl;
+    }
+
+    function upgradeTo(address _impl) public {
+        impl = _impl;
+    }
+
+    function add(uint256 n) external {
+        bytes memory callData = abi.encodeWithSignature("add(uint256)", n);
+        (bool ok,) = address(impl).delegatecall(callData);
+        if(!ok) revert("Delegate call failed");
+    }
+
+    function get() external view returns(uint256) {
+        bytes memory callData = abi.encodeWithSignature("get()");
+        (bool ok, bytes memory retVal) = address(impl).delegatecall(callData);
+
+        if(!ok) revert("Delegate call failed");
+
+        return abi.decode(retVal, (uint256));
+    }
+}

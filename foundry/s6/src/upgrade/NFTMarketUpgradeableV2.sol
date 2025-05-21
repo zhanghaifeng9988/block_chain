@@ -30,9 +30,9 @@ contract NFTMarketUpgradeableV2 is Initializable, ReentrancyGuardUpgradeable, Ow
     event NFTListingCancelled(address indexed seller, address indexed nftContract, uint256 indexed tokenId);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
+    // constructor() {
+    //     _disableInitializers();
+    // }
 
     function initialize() public initializer {
         __ReentrancyGuard_init();

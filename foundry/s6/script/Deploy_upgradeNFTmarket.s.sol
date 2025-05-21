@@ -4,8 +4,9 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/tokens/ERC721Upgradeable.sol";
 import "../src/market/NFTMarketUpgradeable.sol";
-import "../src/upgrade/upgradeProxy.sol";
 import "../src/upgrade/NFTMarketUpgradeableV2.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 contract DeployScript is Script {
     // 网络配置
@@ -44,15 +45,27 @@ contract DeployScript is Script {
         market.initialize();
         console2.log(unicode"   - 合约地址:", address(market));
 
-        // 3. 部署升级后的市场合约
-        console2.log(unicode"\n3. 部署升级后的市场合约");
-        NFTMarketUpgradeableV2 marketV2 = new NFTMarketUpgradeableV2();
-        console2.log(unicode"   - 合约地址:", address(marketV2));
+        // 3. 部署升级后市场逻辑合约（不初始化）
+        console2.log(unicode"\n3. 部署升级后市场逻辑合约");
+        NFTMarketUpgradeableV2 logic = new NFTMarketUpgradeableV2();
+        console2.log(unicode"   - 逻辑合约地址:", address(logic));
 
-        // 4. 部署代理合约
-        console2.log(unicode"\n4. 部署代理合约");
-        NFTMarketUpgradeableV2 proxy = new NFTMarketUpgradeableV2();
-        console2.log(unicode"   - 合约地址:", address(proxy));
+        // 4. 部署 ProxyAdmin
+        console2.log(unicode"\n4. 部署 ProxyAdmin");
+        ProxyAdmin proxyAdmin = new ProxyAdmin();
+        console2.log(unicode"   - ProxyAdmin 地址:", address(proxyAdmin));
+
+        // 5. 构造初始化数据
+        bytes memory initData = abi.encodeWithSignature("initialize()");
+
+        // 6. 部署官方 TransparentUpgradeableProxy
+        console2.log(unicode"\n5. 部署官方 TransparentUpgradeableProxy 代理合约");
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(logic),
+            address(proxyAdmin),
+            initData
+        );
+        console2.log(unicode"   - 代理合约地址:", address(proxy));
 
         vm.stopBroadcast();
 
@@ -92,10 +105,10 @@ contract DeployScript is Script {
         console2.log(unicode"\n2. 原始市场合约验证命令:");
         console2.log(marketVerifyCmd);
 
-        // 升级后市场合约验证命令
-        string memory marketV2VerifyCmd = string.concat(
+        // 升级后市场逻辑合约验证命令
+        string memory logicVerifyCmd = string.concat(
             "forge verify-contract ",
-            vm.toString(address(marketV2)),
+            vm.toString(address(logic)),
             " src/upgrade/NFTMarketUpgradeableV2.sol:NFTMarketUpgradeableV2",
             " --chain-id ",
             vm.toString(SEPOLIA_CHAIN_ID),
@@ -103,14 +116,21 @@ contract DeployScript is Script {
             etherscanApiKey,
             " --watch"
         );
-        console2.log(unicode"\n3. 升级后市场合约验证命令:");
-        console2.log(marketV2VerifyCmd);
+        console2.log(unicode"\n3. 升级后市场逻辑合约验证命令:");
+        console2.log(logicVerifyCmd);
 
         // 代理合约验证命令
         string memory proxyVerifyCmd = string.concat(
             "forge verify-contract ",
             vm.toString(address(proxy)),
-            " src/upgrade/upgradeProxy.sol:NFTMarketUpgradeableV2",
+            " @openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+            " --constructor-args $(cast abi-encode \"constructor(address,address,bytes)\" ",
+            vm.toString(address(logic)),
+            " ",
+            vm.toString(address(proxyAdmin)),
+            " 0x",
+            vm.toString(initData),
+            ")",
             " --chain-id ",
             vm.toString(SEPOLIA_CHAIN_ID),
             " --etherscan-api-key ",
@@ -119,6 +139,20 @@ contract DeployScript is Script {
         );
         console2.log(unicode"\n4. 代理合约验证命令:");
         console2.log(proxyVerifyCmd);
+
+        // ProxyAdmin 合约验证命令
+        string memory proxyAdminVerifyCmd = string.concat(
+            "forge verify-contract ",
+            vm.toString(address(proxyAdmin)),
+            " @openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol:ProxyAdmin",
+            " --chain-id ",
+            vm.toString(SEPOLIA_CHAIN_ID),
+            " --etherscan-api-key ",
+            etherscanApiKey,
+            " --watch"
+        );
+        console2.log(unicode"\n5. ProxyAdmin 合约验证命令:");
+        console2.log(proxyAdminVerifyCmd);
 
         console2.log(unicode"\n=== 部署完成 ===");
         console2.log(unicode"请确保已设置 ETHERSCAN_API_KEY 环境变量");

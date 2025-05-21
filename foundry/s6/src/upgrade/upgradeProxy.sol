@@ -16,9 +16,13 @@ contract UpgradeProxy is Initializable {
         _;
     }
 
-    function initialize(address _implementation) public initializer {
+    function initialize(address _implementation, bytes memory _initData) public initializer {
         implementation = _implementation;
         admin = msg.sender;
+        if (_initData.length > 0) {
+            (bool ok, ) = _implementation.delegatecall(_initData);
+            require(ok, "Init failed");
+        }
     }
 
     function upgrade(address _newImplementation) external onlyAdmin {

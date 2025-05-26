@@ -2514,12 +2514,13 @@ contract B is A {
 与合约实际 ETH 余额无自动关联，完全由代码逻辑控制。
 
 
-# calldata 的用途
+# CALLDATA 的用途
 ## (1) 交易（Transaction）中调用合约
-当你在钱包（如 MetaMask）或 Remix 中调用合约函数时，底层会生成 Calldata 并附加到交易中。
-## calldata 是根据 ABI 规则编码后的二进制数据，实际传递给合约的字节码。
+当你在钱包（如 MetaMask）或 Remix 中调用合约函数时，底层会生成CALLDATA并附加到交易中。
+## CALLDATA
+ 是根据 ABI 规则编码后的二进制数据，实际传递给合约的字节码。
 
-**一个完整的 Calldata  包含两部分：**
+**一个完整的CALLDATA包含两部分：**
 
 (1) 函数选择器（Function Selector）
 前 4 字节，由 keccak256(函数名+参数类型) 的前 4 字节生成。

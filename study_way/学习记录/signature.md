@@ -320,3 +320,48 @@ sequenceDiagram
     PermitTokenBank-->>Admin: 提款成功
 ```
 
+
+## permit2
+permit是在线签名，permit2是离线签名。
+结合了 approve 与 erc2612 - permit
+https://github.com/Uniswap/permit2
+
+**举例**：
+![1748096852464](image/signature/1748096852464.png)
+• Alice在一个ERC20上调用 approve ,无限的授权给 Permit2 合约 (在各个链上有相同的地址)
+
+• Alice签署链下消息:表明协议合约被允许代表她转账代币
+
+• 协议合约上调用一个交互函数,将签署的 permit2 消息作为参数传入
+
+• Permit2合约上调用 permitTransferFrom, Permit2 按照消息指示转移 Token 到协议
+
+![1748096717375](image/signature/1748096717375.png)
+
+
+一个完整得序列图：**待确认**
+
+任务，帮我写一个新得合约文件， 复制这个文件得内容，
+D:\blockchain\foundry\s6\src\banks\permit_tokenBank.sol
+要求：
+1、增加一个方法 depositWithPermit2()，这个方法使用 permit2 进行签名授权转账来进行存款。这个合约得命名为：permit2_tokenBank.sol  ,文件放置在D:\blockchain\foundry\s6\src\banks\   目录下
+2、同时 需要编写1个Permit2 合约，名为permit2.sol，文件放置在D:\blockchain\foundry\s6\src\banks\   目录下
+3、erc20token合约，参照这个文件：D:\blockchain\foundry\s6\src\tokens\PermitToken.sol
+新建1个文件，目录为D:\blockchain\foundry\s6\src\tokens\  ，文件名为Permit2Token.sol ,要求铸造44444token给到合约得部署者，token得名称为zhf_erc2612permit2
+你理解了以上任务得需求，我再跟你说说终极得工作要求：这次的permit2方式得增加，所使用得前端，是之前做好得，目录：D:\blockchain\DAPP\tokenbank-frontend
+你再理解了本次任务后，最后去扫描一下这个前端项目，因为要把新增得permit2授权功能增加到前端中去，以前前端中写死得那些合约地址都需要改动得。对了，本项目一直是本地部署。
+
+**三个合约得部署命令，部署之前先build，排除合约问题。**
+  forge script script/Deploy_Permit2Token.s.sol --rpc-url http://localhost:8545 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+ Permit2Token deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+
+forge script script/DeployPermit2.s.sol --rpc-url http://127.0.0.1:8545 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+
+ Permit2 deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+
+
+ forge script script/Deploy_Permit2TokenBank.s.sol --rpc-url http://localhost:8545 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+ Permit2TokenBank deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0

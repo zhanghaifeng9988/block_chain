@@ -5,6 +5,7 @@ import { localhost } from 'viem/chains'
 import detectEthereumProvider from '@metamask/detect-provider'
 import TokenBankArtifact from './contracts/PermitTokenBank.json'
 import TokenArtifact from './contracts/PermitToken.json'
+import { useWallet } from 'vue-dapp'
 
 // 自定义本地链配置
 const anvilChain = {
@@ -348,144 +349,109 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container">
-    <h1>TokenBank DApp</h1>
-    
-    <div v-if="!isConnected" class="connect-section">
-      <button @click="connectWallet" class="connect-btn">连接钱包</button>
-    </div>
-
-    <div v-else class="bank-section">
-      <div class="info-section">
-        <p>当前账户: {{ shortAddress }}</p>
-        <p>Token 余额: {{ tokenBalance }} TOKEN</p>
-        <p>Bank 存款: {{ bankBalance }} TOKEN</p>
-      </div>
-
-      <div class="action-section">
-        <div class="input-group">
-          <input 
-            v-model="amount" 
-            type="number" 
-            placeholder="输入数量"
-            :disabled="isLoading"
-          >
-          <div class="button-group">
-            <button 
-              @click="deposit" 
-              :disabled="isLoading || !amount"
-              class="action-btn deposit"
-            >
-              存款
-            </button>
-            <button 
-              @click="withdraw" 
-              :disabled="isLoading || !amount"
-              class="action-btn withdraw"
-            >
-              取款
-            </button>
-            <button 
-              @click="permitDeposit" 
-              :disabled="isLoading || !amount"
-              class="action-btn deposit"
-            >
-              permit存款
-            </button>
-          </div>
+  <div class="app">
+    <el-container>
+      <el-header>
+        <h1>Token Bank</h1>
+        <div class="wallet-section">
+          <template v-if="!isConnected">
+            <el-button type="primary" @click="connectWallet">连接钱包</el-button>
+          </template>
+          <template v-else>
+            <el-button type="info" @click="disconnect">断开连接</el-button>
+            <span class="address">{{ shortAddress }}</span>
+          </template>
         </div>
-      </div>
-    </div>
+      </el-header>
+      
+      <el-main>
+        <div class="balance-section">
+          <h2>我的余额</h2>
+          <p>Token 余额: {{ tokenBalance }}</p>
+          <p>Bank 余额: {{ bankBalance }}</p>
+        </div>
+
+        <div class="action-section">
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>存款</span>
+              </div>
+            </template>
+            <el-input v-model="amount" placeholder="输入存款数量">
+              <template #append>
+                <el-button @click="deposit" :disabled="isLoading || !amount">存款</el-button>
+              </template>
+            </el-input>
+          </el-card>
+
+          <el-card>
+            <template #header>
+              <div class="card-header">
+                <span>取款</span>
+              </div>
+            </template>
+            <el-input v-model="amount" placeholder="输入取款数量">
+              <template #append>
+                <el-button @click="withdraw" :disabled="isLoading || !amount">取款</el-button>
+              </template>
+            </el-input>
+          </el-card>
+        </div>
+      </el-main>
+    </el-container>
   </div>
 </template>
 
 <style scoped>
-.container {
-  max-width: 800px;
+.app {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 20px;
 }
 
-h1 {
-  color: #2c3e50;
-  margin-bottom: 2rem;
+.el-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #f5f7fa;
 }
 
-.connect-section {
-  margin: 2rem 0;
+.wallet-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.connect-btn {
-  background-color: #4CAF50;
-  color: white;
-  padding: 1rem 2rem;
-  border: none;
+.address {
+  font-family: monospace;
+  background-color: #eee;
+  padding: 4px 8px;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 1.1rem;
 }
 
-.bank-section {
-  background-color: #f8f9fa;
-  padding: 2rem;
+.balance-section {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #f5f7fa;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.info-section {
-  margin-bottom: 2rem;
+.action-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
-.info-section p {
-  margin: 0.5rem 0;
-  font-size: 1.1rem;
-  color: #2c3e50;
+.el-card {
+  margin-bottom: 20px;
 }
 
-.input-group {
+.card-header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-input {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.button-group {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.action-btn {
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  flex: 1;
-  transition: opacity 0.3s;
-}
-
-.action-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.deposit {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.withdraw {
-  background-color: #f44336;
-  color: white;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

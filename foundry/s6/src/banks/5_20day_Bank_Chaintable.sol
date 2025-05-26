@@ -12,14 +12,21 @@ contract BankChainTable {
     struct Node {
         address user;
         uint256 amount;
-        uint256 next;  // 指向下一个节点的索引
+        address next;  // 指向下一个节点的地址
+        address prev;  // 指向前一个节点的地址
     }
     
-    // 存储所有节点的数组
-    Node[] public nodes;
+    // 存储所有节点的映射
+    mapping(address => Node) public nodes;
     
-    // 头节点索引
-    uint256 public head;
+    // 头节点地址
+    address public head;
+    
+    // 尾节点地址
+    address public tail;
+    
+    // 当前排名中的用户数量
+    uint256 public userCount;
     
     // 最大存储的排名数量
     uint256 public constant MAX_RANK = 10;
@@ -38,9 +45,9 @@ contract BankChainTable {
     
     constructor() {
         admin = msg.sender;
-        // 初始化头节点
-        nodes.push(Node(address(0), 0, 0));
-        head = 0;
+        head = address(0);
+        tail = address(0);
+        userCount = 0;
     }
     
     // 存款函数
@@ -53,79 +60,90 @@ contract BankChainTable {
     
     // 更新前10名用户
     function _updateTopUsers(address user, uint256 amount) internal {
+        // 如果用户已经在排名中，先移除它
+        if (nodes[user].user == user) {
+            _removeNode(user);
+        }
+        
         // 如果链表为空，直接添加
-        if (nodes.length == 1) {
-            nodes.push(Node(user, amount, 0));
-            head = 1;
+        if (head == address(0)) {
+            nodes[user] = Node(user, amount, address(0), address(0));
+            head = user;
+            tail = user;
+            userCount++;
             emit TopUserUpdated(user, amount);
             return;
         }
         
         // 查找插入位置
-        uint256 current = head;
-        uint256 prev = 0;
-        uint256 insertPos = 0;
+        address current = head;
+        address prev = address(0);
         
-        // 遍历链表找到合适的插入位置
-        while (current != 0) {
-            if (amount > nodes[current].amount) {
-                insertPos = current;
-                break;
-            }
+        while (current != address(0) && nodes[current].amount >= amount) {
             prev = current;
             current = nodes[current].next;
         }
         
-        // 如果找到插入位置
-        if (insertPos != 0) {
+        // 如果未达到最大数量或金额大于最小值
+        if (userCount < MAX_RANK || current != address(0)) {
             // 创建新节点
-            nodes.push(Node(user, amount, insertPos));
-            uint256 newNodeIndex = nodes.length - 1;
+            nodes[user] = Node(user, amount, current, prev);
             
-            // 如果是头节点
-            if (insertPos == head) {
-                head = newNodeIndex;
+            // 更新链接
+            if (prev == address(0)) {
+                // 插入到头部
+                head = user;
             } else {
-                // 更新前一个节点的next
-                nodes[prev].next = newNodeIndex;
+                nodes[prev].next = user;
             }
-        } else if (nodes.length - 1 < MAX_RANK) {
-            // 如果没找到插入位置且未达到最大数量，添加到末尾
-            nodes.push(Node(user, amount, 0));
-            nodes[prev].next = nodes.length - 1;
-        }
-        
-        // 如果超过最大数量，删除最后一个节点
-        if (nodes.length - 1 > MAX_RANK) {
-            current = head;
-            prev = 0;
-            for (uint256 i = 0; i < MAX_RANK - 1; i++) {
-                prev = current;
-                current = nodes[current].next;
+            
+            if (current == address(0)) {
+                // 插入到尾部
+                tail = user;
+            } else {
+                nodes[current].prev = user;
             }
-            nodes[prev].next = 0;
+            
+            if (userCount < MAX_RANK) {
+                userCount++;
+            } else if (current == address(0)) {
+                // 删除最后一个节点
+                address oldTail = tail;
+                tail = nodes[tail].prev;
+                nodes[tail].next = address(0);
+                delete nodes[oldTail];
+            }
         }
         
         emit TopUserUpdated(user, amount);
     }
     
-    // 获取前10名用户
-    function getTopUsers() external view returns (address[] memory, uint256[] memory) {
-        uint256 count = 0;
-        uint256 current = head;
-        
-        // 计算实际节点数量
-        while (current != 0 && count < MAX_RANK) {
-            count++;
-            current = nodes[current].next;
+    // 从链表中移除节点
+    function _removeNode(address user) internal {
+        if (nodes[user].prev == address(0)) {
+            head = nodes[user].next;
+        } else {
+            nodes[nodes[user].prev].next = nodes[user].next;
         }
         
-        address[] memory users = new address[](count);
-        uint256[] memory amounts = new uint256[](count);
+        if (nodes[user].next == address(0)) {
+            tail = nodes[user].prev;
+        } else {
+            nodes[nodes[user].next].prev = nodes[user].prev;
+        }
         
-        current = head;
-        for (uint256 i = 0; i < count; i++) {
-            users[i] = nodes[current].user;
+        delete nodes[user];
+        userCount--;
+    }
+    
+    // 获取前10名用户
+    function getTopUsers() external view returns (address[] memory, uint256[] memory) {
+        address[] memory users = new address[](userCount);
+        uint256[] memory amounts = new uint256[](userCount);
+        
+        address current = head;
+        for (uint256 i = 0; i < userCount; i++) {
+            users[i] = current;
             amounts[i] = nodes[current].amount;
             current = nodes[current].next;
         }
@@ -177,4 +195,4 @@ contract BankChainTable {
         _updateTopUsers(msg.sender, balances[msg.sender]);
         emit Deposit(msg.sender, msg.value);
     }
-} 
+}

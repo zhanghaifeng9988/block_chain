@@ -16,3 +16,6 @@
 [submodule "foundry/s6/lib/chainlink"]
 	path = foundry/s6/lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
+[submodule "foundry/s6/lib/permit2"]
+	path = foundry/s6/lib/permit2
+	url = https://github.com/uniswap/permit2

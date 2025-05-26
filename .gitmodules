@@ -19,3 +19,9 @@
 [submodule "foundry/s6/lib/permit2"]
 	path = foundry/s6/lib/permit2
 	url = https://github.com/uniswap/permit2
+[submodule "uniswap/lib/forge-std"]
+	path = uniswap/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "hf_uniswap/lib/forge-std"]
+	path = hf_uniswap/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std

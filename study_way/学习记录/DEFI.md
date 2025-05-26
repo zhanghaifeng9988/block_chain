@@ -100,8 +100,9 @@ Frax 通过抵押法币支持的代币（如 USDC）和算法调整来维持其�
 
 ## DEX
 “去中心化交易所”（Decentralized Exchange）
-
+Token 兑换 Token
 ### 特点
+用户始终掌握资产、互操作性好（作为金融底层基础设施）、抗审查 …
 1. 去中心化：交易直接在区块链上进行，不依赖于传统的中心化交易所，减少了中心化风险。
 2. 透明度：所有交易记录都公开透明，记录在区块链上，任何人都可以查看。
 3. 自动化：智能合约自动执行交易，减少了人为干预的可能性。
@@ -333,6 +334,22 @@ Vesting 合约包含的方法 release() 用来释放当前解锁的 ERC20 给受
 
 
 
+# DEX类型
+## 订单薄
+• 类似于传统的中⼼化交易所，通过买卖订单的撮合来完成交易。
+• 以 0x 协议为代表，链下订单撮合和链上结算
+
+## 流动性池
+• 流动性池合约作为交易的对手方，⽤户可以将资⾦存⼊流动性池，作为流动性提供者
+（LP），并通过提供流动性赚取交易费⽤。
+• 以 Uniswap 为代表，自动作市商协议， 类似的还有：SushiSwap/Balancer/ Curve/ 
+Pancakeswap/dod
+
+
+
+
+
+
 # 质押挖矿
 ## LP 概念理解及应用  
 "LP" 是 Liquidity Provider Token（流动性提供者凭证代币） 的缩写。
@@ -372,3 +389,307 @@ function stakeLP(uint256 amount) external {
 }
 
 
+##  Uniswap AMM
+• AMM协议： AutoMated Market Making
+• AutoMate(d)： 自动，没有中间机构进行资金交易
+• Market Making: 做市商（保证订单得以执行），也称为流动性提供者（LP: liquidity providers）
+• 流动性指的是如何快速和无缝地购买或出售一项资产
+• LP 是提供资产的人以实现快速交易。
+• Uniswap 使用常量乘积模型： K = x * y
+
+### 常量乘积模型
+常量乘积模型： K = x * y
+• AMM 的执行引擎， 没有价格预言机，价格用公式推导
+• x：token0 的储备量（reserve0）
+• y：token1 的储备量（reserve1）
+• 提供流动性：
+• 转入token0、token1，增加reserve0、reserve1，拿到流动性凭证（LP Token) = sqrt(x * y) 
+• 兑换时，K 保持不变
+• 减少reserve0，就必须增加reserve1
+• 减少reserve1，就必须增加reserve0
+• 移除流动性
+
+
+
+
+### 原理解释
+![1748264059262](image/DEFI/1748264059262.png)
+**图中包含以下几个关键角色：**
+
+- Liquidity Provider（流动性提供者）：为流动性池提供资金，成为流动性的贡献者。
+- Trader（交易者）：在流动性池中进行交易，通常是买入或卖出代币。
+- Uniswap Pool（流动性池）：存放资产的中央池，交易者通过这个池进行代币兑换。
+
+**步骤 1：**流动性提供者存款（Deposit）
+输入：流动性提供者向流动性池存入 10 Token A 和 1 Token B。
+输出：流动性提供者获得 **4 个流动性代币**（**LP Shares**）。
+这代表流动性提供者对流动性池的份额，以后可以用来提取池中的资产。
+
+**流动性池中的储备（Reserves）：**
+Token A：100 + 10 = 110 个 Token A
+Token B：10 + 1 = 11 个 Token B
+流动性池的核心是 储备（Reserves），即池中持有的两种代币的总量。在这一步中，代币 A 和 B 的数量被添加到池的储备中。
+
+
+流动性代币（Liquidity Shares）：
+流动性池中共有 12 个流动性代币（Pool Tokens），其中流动性提供者持有 4 个。
+
+**步骤 2**：交易者进行交易（Swap）
+输入：交易者向流动性池存入 10 个个 Token A。
+输出：交易者从流动性池中获得 1 个Token B，并支付 0.03% 的手续费。
+手续费（Fee）：
+每次交易都会有 0.03% 的手续费，这笔手续费会加到流动性池的储备中，增加了池中的资产总量。
+
+
+**步骤 3：**流动性池的状态更新
+Token A：110 - 10 = 100 个 Token A
+Token B：11 + 1 = 12 个 Token B（加上交易者支付的手续费收入）。
+流动性代币（LP Shares）：维持不变，仍然是 12 个流动性代币。
+
+
+### 提供流动性
+在 Uniswap 或其他 AMM（自动做市商）中，通常会将 稳定币（Stablecoin） 和 ERC-20 代币 配对，这种配对非常常见
+
+
+### Mini AMM Demo
+100 行代码理解AMM
+https://github.com/lbc-team/hello_foundry/blob/main/src/MiniSwapPool.sol
+
+这段代码得序列图：
+
+```mermaid
+sequenceDiagram
+    %% 参与者定义
+    actor 用户
+    participant MiniSwapPool
+    participant Token0 as Token0(ERC20)
+    participant Token1 as Token1(ERC20)
+
+    %% 添加流动性（完整生命周期）
+    用户 ->>+ MiniSwapPool: addLiquidity(amount0, amount1)
+    MiniSwapPool ->>+ Token0: transferFrom(用户, 合约, amount0)
+    Token0 -->>- MiniSwapPool: success
+    MiniSwapPool ->>+ Token1: transferFrom(用户, 合约, amount1)
+    Token1 -->>- MiniSwapPool: success
+
+    alt 首次添加
+        MiniSwapPool ->> 用户: _mint(INITIAL_SUPPLY)
+    else 非首次
+        MiniSwapPool ->> 用户: _mint(按比例计算的新LP)
+    end
+    MiniSwapPool ->> MiniSwapPool: 更新reserve0/reserve1
+    MiniSwapPool -->>- 用户: 完成
+
+    %% 移除流动性（独立生命周期）
+    用户 ->>+ MiniSwapPool: remove(liquidity)
+    MiniSwapPool ->> MiniSwapPool: transfer(合约, liquidity)
+    MiniSwapPool ->> MiniSwapPool: _burn(liquidity)
+    MiniSwapPool ->>+ Token0: transfer(用户, amount0)
+    Token0 -->>- MiniSwapPool: success
+    MiniSwapPool ->>+ Token1: transfer(用户, amount1)
+    Token1 -->>- MiniSwapPool: success
+    MiniSwapPool ->> MiniSwapPool: 更新reserve0/reserve1
+    MiniSwapPool -->>- 用户: 完成
+
+    %% 代币交换（独立生命周期）
+    actor 交易者
+    交易者 ->>+ MiniSwapPool: swap(amountIn, minOut, fromToken, toToken, to)
+    MiniSwapPool ->> MiniSwapPool: getAmountOut(amountIn, fromToken)
+
+    alt 滑点检查通过
+        MiniSwapPool ->>+ fromToken: transferFrom(交易者, 合约, amountIn)
+        fromToken -->>- MiniSwapPool: success
+        MiniSwapPool ->>+ toToken: transfer(to, amountOut)
+        toToken -->>- MiniSwapPool: success
+        MiniSwapPool ->> MiniSwapPool: 更新reserves
+        MiniSwapPool -->>- 交易者: 成功
+    else 滑点检查失败
+        MiniSwapPool -->> 交易者: 回滚("Slipped...")
+    end
+```
+
+
+### 滑点
+在 Uniswap 等**去中心化交易所**（DEX）中，滑点（Slippage） 是指用户预期的交易价格与实际执行价格之间的差异。
+与订单簿不同，在 AMM（自动做市商）模型中，他人的交易可能会影响你的交易价格；
+滑点是预期的交易价格的差异，**在流动性较小（也称为 LP 深度）或交易金额较大时滑点更为明显。**
+• 在交易函数中，amountOutMin 是控制滑点参数，以便在滑点过大时，停止交易，作为主动防御
+机制。
+• 深度更大池子设置更小的滑点，小池子设置大一点的滑点
+
+
+以下是通俗易懂的解释：
+
+一、滑点产生的原因
+恒定乘积公式（x*y=k）
+当大额交易发生时，池子中代币数量的变化会导致价格波动。例如：
+
+用 ETH 购买 DAI 时，ETH 储备增加 → DAI 储备减少 → DAI 价格上升
+交易量越大，价格偏移越明显
+市场波动
+在交易确认前（区块链需要时间打包），市场价格可能已发生变化。
+
+流动性深度不足
+如果资金池规模小，大额交易会显著影响价格。
+
+二、滑点计算示例
+假设一个 ETH/DAI 池：
+
+当前储备：100 ETH + 200,000 DAI
+（1 ETH = 2,000 DAI）
+用户想用 10 ETH 买 DAI：
+
+交易后池子变为：110 ETH + (k/110) ≈ 110 ETH + 181,818 DAI
+用户获得：200,000 - 181,818 = 18,182 DAI
+实际价格：18,182 DAI / 10 ETH = 1,818.2 DAI/ETH
+滑点：(2,000 - 1,818.2)/2,000 ≈ 9.09%
+
+
+**关键解释**：为什么是 (k/110)？
+当用户存入 10 ETH 后：
+
+新的 ETH 储备量 x_new = 100 + 10 = 110
+根据公式 x_new * y_new = k，可得：
+y_new = k/110 = 20000000/110 约= 181818.18 DAI
+物理意义：为了保证 k 不变，DAI 的储备量必须减少到约 181,818 DAI。
+
+三、一些思考
+**为什么大额交易会产生滑点？**
+- **恒定乘积公式的数学约束**
+Uniswap 使用 x * y = k 模型，当大额交易发生时：
+
+存入大量代币 A → 池中 A 数量增加 → 代币 B 必须按 k/(x+Δx) 减少；
+代币 B 的减少幅度是非线性的，导致实际成交价劣于初始价格。
+
+- **价格冲击（Price Impact）**
+举例说明：
+
+池子初始状态：100 ETH + 200,000 DAI（1 ETH = 2,000 DAI）
+用户用 50 ETH 购买 DAI：
+新 ETH 储备：100 + 50 = 150
+新 DAI 储备：20,000,000 / 150 ≈ 133,333 DAI
+用户获得：200,000 - 133,333 = 66,667 DAI
+实际价格：66,667 DAI / 50 ETH = 1,333 DAI/ETH
+滑点损失：(2,000 - 1,333)/2,000 = 33.35%
+
+
+四、滑点损失的流向
+损失的这部分价值并未消失，而是分配给了以下角色：
+
+| 受益方 | 获取方式 | 
+|--------|----------| 
+| 流动性提供者（LP） | 滑点导致资金池比例变化，LP 获得额外的代币储备（套利者会平衡价格，最终提升 LP 资产价值） | 
+| 套利者 | 当大额交易造成价格偏离市场价时，套利者会通过低价买入/高价卖出赚取差价 | 
+| 后续交易者 | 交易后的新价格成为池子的基准价，后续交易者可能获得更优价格 |
+
+
+五、如何验证损失的去向？
+LP 收益计算
+
+上例中，交易后池子变为 150 ETH + 133,333 DAI
+若市场价格恢复 1 ETH = 2,000 DAI，则 LP 资产总价值：
+150 ETH * 2,000 + 133,333 DAI = 433,333 DAI
+比初始 100 ETH * 2,000 + 200,000 DAI = 400,000 DAI 增值 33,333 DAI（正好等于用户的滑点损失）
+套利过程
+套利者会向池子注入 DAI 取出 ETH，直到价格回归市场价，在此过程中赚取差价。
+
+
+
+
+
+六、关键概念
+| 术语 | 说明 | 
+|------|------| 
+| 滑点容忍度 | 用户设置的最大可接受价格偏差（如 0.5%） | 
+| 最小接收量 | 根据滑点计算的最低应得代币量（交易失败条件） | 
+| 前端运行 | 机器人在用户交易前抢跑，加剧滑点（需支付更高 Gas 费避免） |
+
+
+七、如何降低滑点
+- **拆分为小额交易**
+将大额交易分成多笔，减少单次对价格的影响。
+
+- **选择深度大的池子**
+查看池子的总锁仓量（TVL），流动性越高滑点越低。
+
+- **设置合理滑点容忍度**
+
+常规交易：0.1%-0.5%
+低流动性代币：1%-3%
+使用限价单模式
+部分 DEX（如 Uniswap V3）支持设定精确成交价格。
+
+八、Uniswap 的滑点保护
+当实际价格偏差 > 用户设置的滑点容忍度时，交易会自动回滚。代码逻辑如下：
+
+// 在 swap() 函数中
+(uint amountOut, , ) = getAmountOut(amountIn, fromToken);
+require(amountOut >= minAmountOut, "Slippage limit reached"); 
+// minAmountOut = 预期数量 * (1 - 滑点率)
+CopyInsert
+
+九、特殊场景
+高波动时期：极端行情下滑点可能突然飙升（如黑天鹅事件）
+新代币交易：流动性池刚建立时，微小交易量就会导致巨大滑点
+理解滑点有助于优化交易策略，避免意外损失。
+
+# Uniswap V2
+![1748270189165](image/DEFI/1748270189165.png)
+**一些理解：**
+Uniswap V2 是在上面amm得基础规则治丧，又增加了手续费
+Uniswap V2 在基础的 AMM（自动做市商）模型之上，新增了 0.3% 的交易手续费，这是对原始恒定乘积公式（x * y = k）的重要升级。以下是关键改进和运作机制：
+
+一、Uniswap V2 的核心新增规则
+手续费机制
+
+每笔交易收取 0.3% 手续费，直接注入流动性池（LP 共享）。
+
+
+**源码：**
+https://github.com/Uniswap/v2-core https://github.com/Uniswap/v2-periphery
+
+
+
+# 三明治攻击 - 夹子机器人
+当滑点设置较大时，交易容易被夹 - “三明治攻击” 
+• 攻击者通过操纵交易排序，从中牟取利益。
+• 原理：
+• 1. 监听内存池（eth_subscribe：newPendingTransactions ），发现用户(Bob)买入交易之后
+• 2. 攻击者用更好的 gas 发起一笔买入交易（从而推高价格）- 抢先交易（front-run）
+• 3. 执行 Bob 买入交易（但原本能以较低价格买入，现在应该价格升高拿到了更少的目标 Token）
+• 4. 攻击者反向操作卖出（Bob 的买入交易进一步推高了价格，攻击者此时卖出可获取差价收益。）
+• 如何防御：设置合理滑点、分批交易、使用私人交易路由广播(BloXroute)
+攻击者通常使用 Flashbots 来提交三明治交易，保证两笔攻击交易和用户交易在一个区块中连续执行
+
+```mermaid
+sequenceDiagram
+    actor 用户
+    participant 内存池
+    actor 攻击者
+    participant Uniswap
+    participant 矿工
+    participant 私人路由
+
+    %% 攻击流程
+    用户 ->>+ 内存池: 大额买入交易(高滑点)
+    内存池 ->> 攻击者: 通过eth_subscribe监听
+    攻击者 ->> 矿工: 高Gas抢先交易
+    矿工 ->>+ Uniswap: 攻击者买入(推高价格)
+    Uniswap -->>- 攻击者: 成交确认
+    
+    用户 -->> Uniswap: 原交易执行
+    Uniswap -->> 用户: 获得↓代币数量
+    
+    攻击者 ->> 矿工: 立即卖出交易
+    矿工 ->> Uniswap: 攻击者卖出
+    Uniswap -->> 攻击者: 套利收益
+
+    %% 防御流程
+    rect rgba(200,255,200,0.3)
+        用户 ->>+ 私人路由: 隐私交易广播
+        私人路由 ->> 矿工: 直接提交
+    end
+
+    %% 区块打包说明
+    Note over 矿工,Uniswap: 通过Flashbots确保\n三笔交易连续打包
+```

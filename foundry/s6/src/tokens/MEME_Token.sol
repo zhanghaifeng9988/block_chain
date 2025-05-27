@@ -61,6 +61,7 @@ contract MEME_Token is IERC20 {
 
     function mint(address to, uint256 amount) public {
     //msg.sender 是调用 mint 函数的地址，也就是 MEME_Inscription 工厂合约的地址
+    //to 是接收者地址,就是钱包地址
         emit MintCalled(msg.sender, owner, to, amount);
         require(msg.sender == owner || msg.sender == address(this), "Only owner can mint");
         require(minted + amount <= totalSupply, "Exceeds total supply");

@@ -94,7 +94,7 @@ contract MEME_Inscription {
         uint256 platformFee = totalFee / 100;  // 平台收取 1% 费用
         uint256 creatorFee = totalFee - platformFee;
 
-        // 铸造代币给购买者  msg.sender是MEME_Inscription 工厂合约的地址
+        // 铸造代币给购买者  msg.sender是用户得钱包地址，当前调用这个mintInscription函数
         MEME_Token(tokenAddr).mint(msg.sender, info.perMint);
 
         // 转账费用给平台和创建者

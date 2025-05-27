@@ -25,3 +25,9 @@
 [submodule "hf_uniswap/lib/forge-std"]
 	path = hf_uniswap/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "hf_uniswap/lib/v2-core"]
+	path = hf_uniswap/lib/v2-core
+	url = https://github.com/Uniswap/v2-core
+[submodule "hf_uniswap/lib/v2-periphery"]
+	path = hf_uniswap/lib/v2-periphery
+	url = https://github.com/Uniswap/v2-periphery

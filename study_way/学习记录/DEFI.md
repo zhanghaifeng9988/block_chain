@@ -595,8 +595,6 @@ LP 收益计算
 
 
 
-
-
 六、关键概念
 | 术语 | 说明 | 
 |------|------| 
@@ -693,3 +691,142 @@ sequenceDiagram
     %% 区块打包说明
     Note over 矿工,Uniswap: 通过Flashbots确保\n三笔交易连续打包
 ```
+
+
+# 兑换 ETH - WETH
+• WETH 是 Ether 的 ERC20 包装(Wrap-ETH), 以便方便的和 ERC20 对接
+
+• 1 WETH = 1 ETH
+
+• WETH 合约(WETH9)
+
+• https://etherscan.io/token/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2#code
+
+• deposit()
+
+• withdraw()
+
+• 在兑换(卖)或添加流动性时,先调用一次 WETH.deposit()
+
+## 看看核心源码
+pragma solidity ^0.4.18;
+
+contract WETH9 {
+    string public name     = "Wrapped Ether";
+    string public symbol   = "WETH";
+    uint8  public decimals = 18;
+
+    event  Approval(address indexed src, address indexed guy, uint wad);
+    event  Transfer(address indexed src, address indexed dst, uint wad);
+    event  Deposit(address indexed dst, uint wad);
+    event  Withdrawal(address indexed src, uint wad);
+
+    mapping (address => uint)                       public  balanceOf;
+    mapping (address => mapping (address => uint))  public  allowance;
+
+    function() public payable {
+        deposit();
+    }
+    function deposit() public payable {
+        balanceOf[msg.sender] += msg.value;
+        Deposit(msg.sender, msg.value);
+    }
+    function withdraw(uint wad) public {
+        require(balanceOf[msg.sender] >= wad);
+        balanceOf[msg.sender] -= wad;
+        msg.sender.transfer(wad);
+        Withdrawal(msg.sender, wad);
+    }
+
+    function totalSupply() public view returns (uint) {
+        return this.balance;
+    }
+
+    function approve(address guy, uint wad) public returns (bool) {
+        allowance[msg.sender][guy] = wad;
+        Approval(msg.sender, guy, wad);
+        return true;
+    }
+
+    function transfer(address dst, uint wad) public returns (bool) {
+        return transferFrom(msg.sender, dst, wad);
+    }
+
+    function transferFrom(address src, address dst, uint wad)
+        public
+        returns (bool)
+    {
+        require(balanceOf[src] >= wad);
+
+        if (src != msg.sender && allowance[src][msg.sender] != uint(-1)) {
+            require(allowance[src][msg.sender] >= wad);
+            allowance[src][msg.sender] -= wad;
+        }
+
+        balanceOf[src] -= wad;
+        balanceOf[dst] += wad;
+
+        Transfer(src, dst, wad);
+
+        return true;
+    }
+}
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant WETH9 as WETH9 Contract
+    participant Receiver
+
+    User->>WETH9: 发送ETH（fallback函数）
+    activate WETH9
+    WETH9->>WETH9: deposit()
+    WETH9->>WETH9: balanceOf[User] += msg.value
+    WETH9-->>User: 发出Deposit事件
+    deactivate WETH9
+
+    User->>WETH9: deposit() + ETH
+    activate WETH9
+    WETH9->>WETH9: balanceOf[User] += msg.value
+    WETH9-->>User: 发出Deposit事件
+    deactivate WETH9
+
+    User->>WETH9: withdraw(wad)
+    activate WETH9
+    WETH9->>WETH9: 检查balanceOf[User] ≥ wad
+    WETH9->>WETH9: balanceOf[User] -= wad
+    WETH9->>User: 转账wad ETH
+    WETH9-->>User: 发出Withdrawal事件
+    deactivate WETH9
+
+    User->>WETH9: approve(Spender, wad)
+    activate WETH9
+    WETH9->>WETH9: allowance[User][Spender] = wad
+    WETH9-->>User: 发出Approval事件
+    deactivate WETH9
+
+    User->>WETH9: transfer(Receiver, wad)
+    activate WETH9
+    WETH9->>WETH9: transferFrom(User, Receiver, wad)
+    WETH9->>WETH9: 检查balanceOf[User] ≥ wad
+    alt 非本人操作
+        WETH9->>WETH9: 检查allowance[User][Caller] ≥ wad
+        WETH9->>WETH9: 减少allowance
+    end
+    WETH9->>WETH9: balanceOf[User] -= wad
+    WETH9->>WETH9: balanceOf[Receiver] += wad
+    WETH9-->>User: 发出Transfer事件
+    deactivate WETH9
+
+    User->>WETH9: transferFrom(Owner, Receiver, wad)
+    activate WETH9
+    WETH9->>WETH9: 检查balanceOf[Owner] ≥ wad
+    WETH9->>WETH9: 检查allowance[Owner][User] ≥ wad
+    WETH9->>WETH9: 减少allowance
+    WETH9->>WETH9: balanceOf[Owner] -= wad
+    WETH9->>WETH9: balanceOf[Receiver] += wad
+    WETH9-->>User: 发出Transfer事件
+    deactivate WETH9
+```
+
+

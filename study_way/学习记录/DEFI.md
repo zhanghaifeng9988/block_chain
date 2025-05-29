@@ -9,6 +9,9 @@
 #### 1.**去中心化**
 1. DAI：由 MakerDAO 管理，主要通过**抵押以太坊（ETH）**来生成。用户可以将 ETH 存入 MakerDAO 的智能合约中作为抵押品，借出 DAI。**去中心化**
 
+makerDAO现在叫sky  新的稳定币名字：USDS
+DAI还存在
+
 2. sUSD：由 Synthetix 提供，通过 **抵押 Synthetix Network Token (SNX)** 来生成。
 用户可以将 SNX 存入 Synthetix 系统中，借出 sUSD。  **去中心化**
 
@@ -830,3 +833,287 @@ sequenceDiagram
 ```
 
 
+## 第一个利用lauchpad和uniswapV2的工程
+实现meme上架流动性，价格降低的时候，判断买入
+先看序列图：
+
+### 首先是部署和初始化流程：
+```mermaid
+sequenceDiagram
+    participant Test as UniswapIntegrationTest
+    participant Factory as MockUniswapV2Factory
+    participant Router as MockUniswapV2Router
+    participant WETH as MockERC20(WETH)
+    participant MEME as MEME_Inscription
+    participant Token as MEME_Token
+
+    Test->>WETH: 部署 MockERC20 作为 WETH
+    Test->>Factory: 部署 Factory
+    Test->>Router: 部署 Router
+    Test->>MEME: 部署 MEME_Inscription
+    Test->>Router: setMemeInscriptionAddress
+    Test->>MEME: deployInscription("TEST", 1000, 10, 0.0001)
+    MEME->>Token: 部署并初始化 MEME_Token
+    Test->>Factory: createPair(WETH, Token)
+    Factory->>Pair: 部署 MockUniswapV2Pair
+    Test->>Pair: initialize(WETH, Token)
+    Test->>WETH: mint(Router, 100 ETH)
+    Test->>WETH: mint(Test, 100 ETH)
+```
+
+
+
+### 铸币流程：
+```mermaid
+sequenceDiagram
+    participant User as Test
+    participant MEME as MEME_Inscription
+    participant Token as MEME_Token
+    participant Factory as MockUniswapV2Factory
+    participant Pair as MockUniswapV2Pair
+
+    User->>MEME: mintInscription{value: 0.001 ETH}
+    MEME->>Token: mint(User, 10 tokens)
+    MEME->>Factory: getPair(Token, WETH)
+    Factory-->>MEME: 返回 Pair 地址
+    MEME->>User: 返回 0.95 ETH (5% 费用)
+    MEME->>User: 返回 0.05 ETH (5% 费用)
+```
+
+
+### 添加流动性流程：
+```mermaid
+sequenceDiagram
+    participant User as Test
+    participant MEME as MEME_Inscription
+    participant Token as MEME_Token
+    participant Router as MockUniswapV2Router
+    participant WETH as MockERC20(WETH)
+    participant Pair as MockUniswapV2Pair
+
+    User->>Token: approve(MEME, 10 tokens)
+    User->>MEME: addLiquidity{value: 0.001 ETH}
+    MEME->>Token: transferFrom(User, MEME, 10 tokens)
+    MEME->>Token: approve(Router, 10 tokens)
+    MEME->>Router: addLiquidityETH{value: 0.001 ETH}
+    Router->>WETH: mint(Router, 0.001 ETH)
+    Router->>Pair: transfer(WETH, 0.001 ETH)
+    Router->>Token: transferFrom(MEME, Pair, 10 tokens)
+    Pair->>User: mint(LP tokens)
+```
+
+### 交易流程：
+```mermaid
+sequenceDiagram
+    participant User as Test
+    participant MEME as MEME_Inscription
+    participant Router as MockUniswapV2Router
+    participant WETH as MockERC20(WETH)
+    participant Pair as MockUniswapV2Pair
+    participant Token as MEME_Token
+
+    User->>MEME: buyMeme{value: 0.05 ETH}
+    MEME->>Router: swapExactETHForTokensSupportingFeeOnTransferTokens
+    Router->>WETH: mint(Router, 0.0475 ETH)
+    Router->>Pair: transfer(WETH, 0.0475 ETH)
+    Pair->>Token: approve(Router, amountOut)
+    Pair->>Router: transfer(Token, amountOut)
+    Router->>User: transfer(Token, amountOut)
+```
+
+### 关键点说明：
+ETH 和 WETH 的转换：
+铸币时使用原生 ETH
+添加流动性和交易时，Router 将 ETH 转换为 WETH
+使用 mint 函数模拟 ETH 到 WETH 的转换（测试环境）
+价格计算：
+使用 Uniswap V2 的恒定乘积公式：x * y = k
+交易时确保新的 k 值大于等于原来的 k 值
+授权流程：
+添加流动性前需要授权 MEME_Inscription 使用代币
+MEME_Inscription 需要授权 Router 使用代币
+Pair 需要授权 Router 使用代币
+费用处理：
+铸币时收取 5% 的费用
+交易时收取 0.3% 的费用（通过 k 值检查实现）
+这个流程展示了完整的 Uniswap V2 集成，包括：
+代币部署和初始化
+铸币和费用收取
+流动性添加
+交易执行
+每个步骤都遵循 Uniswap V2 的协议规范，确保了价格发现和流动性提供的正确性。
+
+**代码位置：D:\uniswap**
+
+
+
+# 稳定币的一些深入理解
+## USDS  -- 抵押稳定币
+USDS 是 Sky(之前叫 MakerDAO) 发行的去中心化稳定币,是最大的去中心化稳定币
+
+• USDS 本质是一个借贷协议,所借资产是 mint 出来的稳定币
+![1748501861853](image/DEFI/1748501861853.png)
+https://app.spark.fi/borrow
+这个网站主要提供通过加密资产作为抵押来借款的金融服务，特别使用的是USDS（去中心化稳定币）作为借款选项之一[1]。用户可以利用多种加密资产，如ETH、stETH、weETH、rETH和cbBTC作为抵押物，以透明的利率借款[1]。
+```mermaid
+sequenceDiagram
+    participant User
+    participant USDSContract
+    participant ReserveContract
+    participant Oracle
+
+    User->>USDSContract: 存入加密资产（如ETH）
+    USDSContract->>Oracle: 请求当前美元价格
+    Oracle-->>USDSContract: 返回美元价格
+    USDSContract->>ReserveContract: 计算并铸造USDS
+    ReserveContract-->>USDSContract: 确认铸造的USDS数量
+    USDSContract-->>User: 发放USDS
+
+    User->>USDSContract: 赎回USDS
+    USDSContract->>Oracle: 请求当前美元价格
+    Oracle-->>USDSContract: 返回美元价格
+    USDSContract->>ReserveContract: 计算并销毁USDS
+    ReserveContract-->>USDSContract: 确认销毁的USDS数量
+    USDSContract->>User: 归还加密资产（如ETH）
+
+    USDSContract->>ReserveContract: 检查USDS供应与价格
+    ReserveContract->>Oracle: 请求当前美元价格
+    Oracle-->>ReserveContract: 返回美元价格
+    ReserveContract->>USDSContract: 提供USDS供应与价格分析
+    USDSContract->>ReserveContract: 根据分析调整储备资产
+    ReserveContract-->>USDSContract: 确认调整
+    USDSContract->>ReserveContract: 铸造或销毁USDS以保持稳定
+    ReserveContract-->>USDSContract: 确认铸造或销毁
+```
+合约地址：
+https://etherscan.io/token/0xdC035D45d973E3EC169d2276DDab16f1e407384F
+
+
+## Ampleforth  -- 算法稳定币
+如何调控每个账号的余额? 
+```mermaid
+sequenceDiagram
+    participant 预言机
+    participant Ampleforth合约
+    participant 用户账户
+
+    预言机->>Ampleforth合约: 报告当前价格(例:1.2美元)
+    Ampleforth合约->>Ampleforth合约: 计算rebase比例(例:+20%)
+    Ampleforth合约->>用户账户: 调整余额(例:100→120)
+    用户账户-->>Ampleforth合约: 确认余额更新
+    Ampleforth合约-->>预言机: 确认rebase完成
+```
+
+价格偏离1美元目标时触发rebase
+所有账户余额同比例调整
+用户持有数量变化但占比不变
+通过供应量弹性调节实现价格稳定
+
+### rebase机制
+
+Ampleforth Rebase机制详解
+```mermaid
+sequenceDiagram
+    participant 预言机
+    participant Ampleforth合约
+    participant 用户账户
+
+    预言机->>Ampleforth合约: 每小时报告一次价格
+    Ampleforth合约->>Ampleforth合约: 计算偏离度(当前价/目标价-1)
+    alt 偏离超过±5%
+        Ampleforth合约->>Ampleforth合约: 计算rebase比例
+        Ampleforth合约->>用户账户: 按比例调整所有余额
+        用户账户-->>Ampleforth合约: 余额更新确认
+    else 偏离小于±5%
+        Ampleforth合约->>预言机: 跳过本次rebase
+    end
+```
+
+
+**核心机制：**
+- 触发条件：
+
+每小时检查一次（以太坊区块时间）
+当价格偏离1美元目标超过5%时触发
+最大单次调整幅度为±20%（防止剧烈波动）
+计算公式：
+
+rebase比例 = (当前价格 - 目标价格) / 目标价格
+新余额 = 旧余额 × (1 + rebase比例)
+示例：当前价1.2美元 → (1.2-1)/1=20% → 100代币变为120
+
+- 用户影响：
+
+钱包余额自动变化（无需用户操作）
+持有比例不变（不影响所有权占比）
+交易对价格会立即反映变化
+与传统稳定币区别： 
+| 特性 | Ampleforth | USDT/USDC |
+|------|------------|----------| 
+| 稳定方式 | 供应量调整 | 法币储备 | 
+| 价格波动 | 允许短期波动 | 严格锚定 | 
+| 抵押品 | 无需抵押 | 需要100%储备 |
+
+- 系统设计目的：
+
+通过供应弹性建立长期价格稳定性
+避免依赖抵押品带来的中心化风险
+创造具有货币政策原语的加密资产
+
+
+## 稳定币改良 Basis Cash
+• 除 BAC 外,引入债券 Basis Bond(BAB),Basis Shares(BAS)
+
+• 当 BAC <$1 时, 可折价兑换 BAB( BAB 价格 = BAC 价格的平方), 等BAC
+
+回到 1 美元的时候,可以 1:1 赎回 BAC(减轻用户币变少的心理负担)
+
+• 当 BAC >$1 时,若赎回之后,仍 >$1 增发BAC作为分红给质押的 BAS
+
+• 号称”野生美联储”
+
+稳定币改良 Basis Cash
+
+
+**Basis Cash三币种机制图示**
+```mermaid
+sequenceDiagram
+    participant 预言机
+    participant Basis合约
+    participant 用户
+    participant BAB债券
+    participant BAS股权
+
+    %% 当BAC < 1美元时
+    预言机->>Basis合约: 报告BAC价格=0.8$
+    alt BAC < 1$
+        Basis合约->>用户: 开放BAB兑换(0.8²=0.64$)
+        用户->>Basis合约: 用BAC购买折价BAB
+        Basis合约->>BAB债券: 销毁对应BAC
+        BAB债券-->>用户: 发放BAB债券
+    else BAC > 1$
+        预言机->>Basis合约: 报告BAC价格=1.2$
+        Basis合约->>BAS股权: 检查质押情况
+        BAS股权->>Basis合约: 质押量确认
+        Basis合约->>Basis合约: 增发20%BAC
+        Basis合约->>BAS股权: 分配新增BAC
+        BAS股权->>用户: 分红给质押者
+    end
+
+    %% 债券赎回流程
+    Note over 用户,BAB债券: 当BAC回升至1$时
+    用户->>BAB债券: 申请1:1赎回BAC
+    BAB债券->>Basis合约: 验证价格
+    Basis合约->>用户: 发放等值BAC
+    BAB债券->>BAB债券: 销毁已赎回BAB
+```
+
+**注意：他已经失败了**
+
+主流稳定币供应量调节机制对比
+| 特性 | USDT(法币抵押) | USDS(算法抵押) | BAC(三币种算法) | Ampleforth(纯算法) | 
+|---------------------|---------------|---------------|----------------|-------------------| 
+| 价格>1时不调节增发回购抵押品增发分红所有余额同比例增加价格时 | 不调节 | 销毁赎回抵押品 | 折价出售BAB债券 | 所有余额同比例减少 | 
+| 调节频率 | 人工决定 | 实时 | 每小时 | 每日 | | 抵押品 | 100%法币 | 加密资产抵押 | 无 | 无 | 
+| 用户余额变化 | 不变 | 可能变化 | 可能变化 | 必然变化 | | 价格稳定机制 | 法币担保 | 抵押品清算 | 债券+股权 | 供应量弹性调节 | 
+| 最大优势 | 价格稳定 | 资本效率高 | 心理接受度好 | 完全去中心化 |

@@ -335,6 +335,97 @@ Cliff：12 个月
 线性释放：接下来的 24 个月，从 第 13 个月起开始每月解锁 1/24 的 ERC20
 Vesting 合约包含的方法 release() 用来释放当前解锁的 ERC20 给受益人，Vesting 合约部署后，开始计算 Cliff ，并转入 100 万 ERC20 资产。
 
+```mermaid
+sequenceDiagram
+    actor 部署者
+    actor 受益人
+    participant VestingToken as VestingToken合约
+    participant TokenVesting as TokenVesting合约
+    
+    %% 部署合约
+    部署者->>VestingToken: 部署()
+    activate VestingToken
+    VestingToken-->>部署者: 铸造2,000,000代币(18位小数)
+    deactivate VestingToken
+    
+    部署者->>TokenVesting: 部署(受益人地址, 代币地址, 开始时间)
+    activate TokenVesting
+    TokenVesting-->>部署者: 合约创建成功
+    deactivate TokenVesting
+    
+    %% 转入代币
+    部署者->>VestingToken: approve(TokenVesting地址, 代币数量)
+    activate VestingToken
+    VestingToken-->>部署者: 授权成功
+    deactivate VestingToken
+    
+    部署者->>VestingToken: transfer(TokenVesting地址, 代币数量)
+    activate VestingToken
+    VestingToken-->>TokenVesting: 代币转入
+    deactivate VestingToken
+    
+    %% 锁定期内尝试释放
+    Note over TokenVesting: 锁定期(CLIFF): 365天
+    
+    受益人->>TokenVesting: release()
+    activate TokenVesting
+    TokenVesting->>TokenVesting: vestedAmount(block.timestamp)
+    Note right of TokenVesting: 如果在锁定期内，vestedAmount返回0
+    TokenVesting->>TokenVesting: 计算可释放金额 = vestedAmount - _released
+    Note right of TokenVesting: 此时可释放金额为0
+    TokenVesting-->>受益人: revert "TokenVesting: no tokens are due"
+    deactivate TokenVesting
+    
+    %% 归属期内释放
+    Note over TokenVesting: 归属期(DURATION - CLIFF): 365天
+    
+    受益人->>TokenVesting: release()
+    activate TokenVesting
+    TokenVesting->>TokenVesting: vestedAmount(block.timestamp)
+    Note right of TokenVesting: 计算公式: (totalBalance * timeFromStart) / (DURATION - CLIFF)
+    TokenVesting->>VestingToken: balanceOf(address(this))
+    VestingToken-->>TokenVesting: 合约余额
+    TokenVesting->>TokenVesting: 计算可释放金额 = vestedAmount - _released
+    alt 可释放金额 > 0
+        TokenVesting->>TokenVesting: _released += 可释放金额
+        TokenVesting->>VestingToken: safeTransfer(受益人, 可释放金额)
+        VestingToken-->>受益人: 转入可释放代币
+        TokenVesting-->>受益人: 触发TokensReleased事件
+    else 可释放金额 = 0
+        TokenVesting-->>受益人: revert "TokenVesting: no tokens are due"
+    end
+    deactivate TokenVesting
+    
+    %% 归属期结束后释放
+    Note over TokenVesting: 归属期结束后
+    
+    受益人->>TokenVesting: release()
+    activate TokenVesting
+    TokenVesting->>TokenVesting: vestedAmount(block.timestamp)
+    Note right of TokenVesting: 归属期结束后，返回合约全部余额+已释放金额
+    TokenVesting->>VestingToken: balanceOf(address(this))
+    VestingToken-->>TokenVesting: 合约余额
+    TokenVesting->>TokenVesting: 计算可释放金额 = vestedAmount - _released
+    alt 可释放金额 > 0
+        TokenVesting->>TokenVesting: _released += 可释放金额
+        TokenVesting->>VestingToken: safeTransfer(受益人, 可释放金额)
+        VestingToken-->>受益人: 转入剩余全部代币
+        TokenVesting-->>受益人: 触发TokensReleased事件
+    else 已全部释放
+        TokenVesting-->>受益人: revert "TokenVesting: no tokens are due"
+    end
+    deactivate TokenVesting
+    %% 查询功能
+    受益人->>TokenVesting: released()
+    activate TokenVesting
+    TokenVesting-->>受益人: 返回已释放代币数量
+    deactivate TokenVesting
+    
+    受益人->>TokenVesting: getBeneficiary()
+    activate TokenVesting
+    TokenVesting-->>受益人: 返回受益人地址
+    deactivate TokenVesting
+```
 
 
 # DEX类型
@@ -540,6 +631,7 @@ sequenceDiagram
 
 当前储备：100 ETH + 200,000 DAI
 （1 ETH = 2,000 DAI）
+k = 100 ETH * 200,000 DAI =200,000,000
 用户想用 10 ETH 买 DAI：
 
 交易后池子变为：110 ETH + (k/110) ≈ 110 ETH + 181,818 DAI
@@ -1117,3 +1209,62 @@ sequenceDiagram
 | 调节频率 | 人工决定 | 实时 | 每小时 | 每日 | | 抵押品 | 100%法币 | 加密资产抵押 | 无 | 无 | 
 | 用户余额变化 | 不变 | 可能变化 | 可能变化 | 必然变化 | | 价格稳定机制 | 法币担保 | 抵押品清算 | 债券+股权 | 供应量弹性调节 | 
 | 最大优势 | 价格稳定 | 资本效率高 | 心理接受度好 | 完全去中心化 |
+
+
+##5月29日作业
+**实现一个通缩的 Token （ERC20），使用Ampleforth的rebase 方式**， 
+实现一个通缩的 Token （ERC20）， 用来理解 rebase 型 Token 的实现原理：
+
+起始发行量为 1 亿，税后每过一年在上一年的发行量基础上下降 1%
+rebase 方法进行通缩
+balanceOf() 可反应通缩后的用户的正确余额。
+需要测试 rebase 后，正确显示用户的余额
+
+
+
+```mermaid
+sequenceDiagram
+    participant Deployer as 部署者
+    participant Contract as DeflationaryToken合约
+    participant User as 用户
+    participant Time as 时间控制
+
+    Note over Contract: 初始状态<br/>rebaseIndex = 1e18<br/>INITIAL_SUPPLY = 1亿
+
+    Deployer->>Contract: 部署合约
+    Contract->>Contract: 初始化状态<br/>deployTimestamp = block.timestamp<br/>lastRebaseTimestamp = block.timestamp
+    Contract->>Deployer: 铸造1亿代币
+
+    Deployer->>Contract: transfer(用户, 100万)
+    Contract->>Contract: 计算rawAmount<br/>rawAmount = amount * 1e18 / rebaseIndex
+    Contract->>Contract: 更新rawBalances<br/>rawBalances[deployer] -= rawAmount<br/>rawBalances[用户] += rawAmount
+    Contract->>Contract: 触发Transfer事件
+    Contract->>Contract: 触发BalanceUpdated事件
+
+    Note over Contract: 等待1小时后
+
+    User->>Time: 检查时间间隔
+    Time-->>User: 返回当前时间戳
+
+    User->>Contract: 调用rebase()
+    Contract->>Contract: 检查时间间隔<br/>block.timestamp >= lastRebaseTimestamp + 1小时
+    Contract->>Contract: 计算yearsPassed<br/>yearsPassed = (block.timestamp - deployTimestamp) / 365 days
+
+    alt yearsPassed == 0
+        Contract->>Contract: 使用固定1%减少率<br/>newIndex = rebaseIndex * 99 / 100
+    else yearsPassed > 0
+        Contract->>Contract: 计算deflationRate<br/>deflationRate = YEARLY_DEFLATION_RATE * yearsPassed
+        Contract->>Contract: 使用年度通缩率<br/>newIndex = rebaseIndex * (10000 - deflationRate) / 10000
+    end
+
+    Contract->>Contract: 检查newIndex < rebaseIndex
+    Contract->>Contract: 更新rebaseIndex = newIndex
+    Contract->>Contract: 更新lastRebaseTimestamp = block.timestamp
+    Contract->>Contract: 触发Rebase事件
+
+    User->>Contract: 查询余额balanceOf()
+    Contract->>Contr![1748519320224](image/DEFI/1748519320224.png)act: 计算实际余额<br/>balance = rawBalances[user] * rebaseIndex / 1e18
+    Contract-->>User: 返回减少后的余额
+
+    Note over Contract: 余额计算示例<br/>初始: 100万 * 1e18 / 1e18 = 100万<br/>一年后: 100万 * 0.99e18 / 1e18 = 99万<br/>两年后: 100万 * 0.98e18 / 1e18 = 98万
+```

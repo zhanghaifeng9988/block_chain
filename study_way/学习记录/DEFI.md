@@ -440,6 +440,433 @@ sequenceDiagram
 Pancakeswap/dod
 
 
+# 第一个memelaunchpad项目，通过uniswapV2创建流动性池，并进行交易。
+5月26日作业：uniswap环境成功部署到本地以后的一些学习记录
+## router&factory&pair的概要理解
+```mermaid
+sequenceDiagram
+    participant 用户钱包
+    participant Router as UniswapV2Router02
+    participant Factory as UniswapV2Factory
+    participant Pair as UniswapV2Pair
+    participant WETH
+    participant TokenA
+    participant TokenB
+
+    %% 添加流动性
+    rect rgb(240, 240, 255)
+        Note over 用户钱包,Pair: 添加流动性流程
+        用户钱包->>Router: addLiquidity(tokenA, tokenB, ...)
+        Router->>Factory: getPair(tokenA, tokenB)
+        Factory-->>Router: pair地址
+        alt 交易对不存在
+            Router->>Factory: createPair(tokenA, tokenB)
+            Factory->>Pair: 创建新交易对
+            Factory-->>Router: 新pair地址
+        end
+        Router->>TokenA: transferFrom(用户, pair, amountA)
+        Router->>TokenB: transferFrom(用户, pair, amountB)
+        Router->>Pair: mint(to)
+        Pair->>用户钱包: 发送流动性代币
+    end
+
+    %% 添加ETH流动性
+    rect rgb(240, 255, 240)
+        Note over 用户钱包,Pair: 添加ETH流动性流程
+        用户钱包->>Router: addLiquidityETH(token, ...) {value: ethAmount}
+        Router->>Factory: getPair(token, WETH)
+        Factory-->>Router: pair地址
+        alt 交易对不存在
+            Router->>Factory: createPair(token, WETH)
+            Factory->>Pair: 创建新交易对
+            Factory-->>Router: 新pair地址
+        end
+        Router->>TokenA: transferFrom(用户, pair, amountToken)
+        Router->>WETH: deposit() {value: ethAmount}
+        Router->>WETH: transfer(pair, ethAmount)
+        Router->>Pair: mint(to)
+        Pair->>用户钱包: 发送流动性代币
+    end
+
+    %% 代币交换
+    rect rgb(255, 240, 240)
+        Note over 用户钱包,Pair: 代币交换流程 (确定输入)
+        用户钱包->>Router: swapExactTokensForTokens(amountIn, minAmountOut, path, to)
+        Router->>Router: getAmountsOut(amountIn, path)
+        Router->>TokenA: transferFrom(用户, pair1, amount)
+        Router->>Pair: swap(0, amount1Out, pair2或to, data)
+        alt 多跳交易
+            Pair->>Pair: 下一个交易对继续交换
+        end
+        Pair->>TokenB: transfer(to, amountOut)
+    end
+
+    %% ETH交换
+    rect rgb(255, 255, 240)
+        Note over 用户钱包,Pair: ETH换代币流程
+        用户钱包->>Router: swapExactETHForTokens(minAmountOut, path, to) {value: ethAmount}
+        Router->>WETH: deposit() {value: ethAmount}
+        Router->>WETH: transfer(pair, ethAmount)
+        Router->>Pair: swap(0, amountOut, to, data)
+        Pair->>TokenB: transfer(to, amountOut)
+    end
+
+    %% 代币换ETH
+    rect rgb(240, 255, 255)
+        Note over 用户钱包,Pair: 代币换ETH流程
+        用户钱包->>Router: swapExactTokensForETH(amountIn, minETH, path, to)
+        Router->>TokenA: transferFrom(用户, pair, amountIn)
+        Router->>Pair: swap(0, amountOut, Router, data)
+        Pair->>WETH: transfer(Router, wethAmount)
+        Router->>WETH: withdraw(wethAmount)
+        Router->>用户钱包: 发送ETH
+    end
+
+    %% 移除流动性
+    rect rgb(255, 240, 255)
+        Note over 用户钱包,Pair: 移除流动性流程
+        用户钱包->>Router: removeLiquidity(tokenA, tokenB, liquidity, ...)
+        Router->>Pair: transferFrom(用户, pair, liquidity)
+        Router->>Pair: burn(to)
+        Pair->>TokenA: transfer(to, amountA)
+        Pair->>TokenB: transfer(to, amountB)
+    end
+
+    %% 价格查询
+    rect rgb(240, 240, 240)
+        Note over 用户钱包,Router: 价格查询流程
+        用户钱包->>Router: getAmountsOut(amountIn, path)
+        Router->>Factory: getPair(path[i], path[i+1])
+        Factory-->>Router: pair地址
+        Router->>Pair: getReserves()
+        Pair-->>Router: (reserve0, reserve1)
+        Router-->>用户钱包: 返回交易金额
+    end
+```
+
+
+## 部署环境以后，AI的分析的uniswapV2的功能图：
+1. 添加流动性流程
+```mermaid
+sequenceDiagram
+    participant 用户钱包 as 用户钱包
+    participant Router as Uniswap Router
+    participant Factory as Uniswap Factory
+    participant 交易对 as 代币交易对
+    participant 代币A as 代币A合约
+    participant 代币B as 代币B合约
+    
+    用户钱包->>用户钱包: 准备代币A和代币B
+    用户钱包->>代币A: 授权Router使用代币A
+    代币A-->>用户钱包: 授权成功
+    用户钱包->>代币B: 授权Router使用代币B
+    代币B-->>用户钱包: 授权成功
+    
+    用户钱包->>Router: 调用addLiquidity(代币A, 代币B, 数量A, 数量B, 最小数量A, 最小数量B)
+    Router->>Factory: 检查交易对是否存在
+    
+    alt 交易对不存在
+        Router->>Factory: 创建新交易对(代币A, 代币B)
+        Factory->>交易对: 部署新的交易对合约
+        Factory-->>Router: 返回新交易对地址
+    else 交易对已存在
+        Factory-->>Router: 返回现有交易对地址
+    end
+    
+    Router->>交易对: 获取当前储备量(reserveA, reserveB)
+    交易对-->>Router: 返回储备量
+    
+    alt 首次添加流动性(储备为0)
+        Router->>Router: 使用全部提供的代币数量
+    else 已有流动性
+        Router->>Router: 计算最优代币比例
+    end
+    
+    Router->>代币A: 从用户转移代币A到交易对
+    Router->>代币B: 从用户转移代币B到交易对
+    Router->>交易对: 调用mint(用户地址)
+    
+    交易对->>交易对: 计算应铸造的LP代币数量
+    交易对->>用户钱包: 铸造并转移LP代币
+    
+    Router-->>用户钱包: 返回添加的代币数量和获得的LP代币数量
+```
+
+2. 代币兑换流程 (确定输入金额)
+```mermaid
+sequenceDiagram
+    participant 用户钱包 as 用户钱包
+    participant Router as Uniswap Router
+    participant Factory as Uniswap Factory
+    participant 交易对AB as 交易对A-B
+    participant 交易对BC as 交易对B-C
+    participant 代币A as 代币A合约
+    participant 代币B as 代币B合约
+    participant 代币C as 代币C合约
+    
+    用户钱包->>代币A: 授权Router使用代币A
+    代币A-->>用户钱包: 授权成功
+    
+    用户钱包->>Router: 调用swapExactTokensForTokens(输入数量, 最小输出数量, [代币A, 代币B, 代币C], 用户地址, 截止时间)
+    
+    Router->>Router: 验证交易截止时间未过期
+    
+    Router->>Factory: 获取交易对地址(代币A, 代币B)
+    Factory-->>Router: 返回交易对A-B地址
+    Router->>Factory: 获取交易对地址(代币B, 代币C)
+    Factory-->>Router: 返回交易对B-C地址
+    
+    Router->>交易对AB: 获取储备量
+    交易对AB-->>Router: 返回reserveA和reserveB
+    Router->>交易对BC: 获取储备量
+    交易对BC-->>Router: 返回reserveB和reserveC
+    
+    Router->>Router: 计算兑换路径上的所有金额
+    Note over Router: 使用getAmountOut计算每一步的输出金额
+    
+    Router->>代币A: 从用户转移代币A到交易对A-B
+    
+    Router->>交易对AB: 调用swap(0, 输出数量B, 交易对B-C地址, 空数据)
+    交易对AB->>代币B: 转移代币B到交易对B-C
+    
+    交易对AB->>交易对BC: 调用uniswapV2Call回调
+    
+    交易对BC->>交易对BC: 验证回调来源
+    交易对BC->>Router: 继续执行
+    
+    Router->>交易对BC: 调用swap(0, 输出数量C, 用户地址, 空数据)
+    交易对BC->>代币C: 转移代币C到用户地址
+    
+    Router-->>用户钱包: 返回兑换路径上的所有金额
+```
+
+3. 代币兑换流程 (确定输出金额)
+```mermaid
+sequenceDiagram
+    participant 用户钱包 as 用户钱包
+    participant Router as Uniswap Router
+    participant Factory as Uniswap Factory
+    participant 交易对 as 代币交易对
+    participant 代币A as 代币A合约
+    participant 代币B as 代币B合约
+    
+    用户钱包->>代币A: 授权Router使用代币A
+    代币A-->>用户钱包: 授权成功
+    
+    用户钱包->>Router: 调用swapTokensForExactTokens(精确输出数量, 最大输入数量, [代币A, 代币B], 用户地址, 截止时间)
+    
+    Router->>Router: 验证交易截止时间未过期
+    
+    Router->>Factory: 获取交易对地址(代币A, 代币B)
+    Factory-->>Router: 返回交易对地址
+    
+    Router->>交易对: 获取储备量
+    交易对-->>Router: 返回reserveA和reserveB
+    
+    Router->>Router: 计算所需的输入金额
+    Note over Router: 使用getAmountIn计算需要的输入金额
+    
+    Router->>Router: 验证输入金额不超过最大输入金额
+    
+    Router->>代币A: 从用户转移计算出的代币A数量到交易对
+    
+    Router->>交易对: 调用swap(0, 精确输出数量, 用户地址, 空数据)
+    交易对->>代币B: 转移精确数量的代币B到用户地址
+    
+    Router-->>用户钱包: 返回实际使用的输入金额和获得的输出金额
+```
+
+4. 支持手续费代币的兑换流程
+```mermaid
+sequenceDiagram
+    participant 用户钱包 as 用户钱包
+    participant Router as Uniswap Router
+    participant Factory as Uniswap Factory
+    participant 交易对 as 代币交易对
+    participant 手续费代币 as 带手续费的代币
+    participant WETH as WETH合约
+    
+    用户钱包->>手续费代币: 授权Router使用代币
+    手续费代币-->>用户钱包: 授权成功
+    
+    用户钱包->>Router: 调用swapExactTokensForETHSupportingFeeOnTransferTokens(输入数量, 最小ETH输出, [手续费代币, WETH], 用户地址, 截止时间)
+    
+    Router->>Router: 验证交易截止时间未过期
+    
+    Router->>Factory: 获取交易对地址(手续费代币, WETH)
+    Factory-->>Router: 返回交易对地址
+    
+    Router->>手续费代币: 获取Router合约的代币余额(前)
+    手续费代币-->>Router: 返回余额
+    
+    Router->>手续费代币: 从用户转移代币到交易对
+    Note over 手续费代币: 在转账过程中收取1%手续费
+    
+    Router->>手续费代币: 获取Router合约的代币余额(后)
+    手续费代币-->>Router: 返回余额
+    
+    Router->>Router: 计算实际转移的代币数量(考虑手续费)
+    
+    Router->>交易对: 获取储备量
+    交易对-->>Router: 返回储备量
+    
+    Router->>交易对: 调用swap(0, 输出WETH数量, Router地址, 空数据)
+    交易对->>WETH: 转移WETH到Router地址
+    
+    Router->>WETH: 获取Router的WETH余额
+    WETH-->>Router: 返回WETH余额
+    
+    Router->>WETH: 调用withdraw将WETH转换为ETH
+    WETH-->>Router: 转换成功
+    
+    Router->>用户钱包: 转移ETH到用户地址
+    
+    Router-->>用户钱包: 返回交易完成状态
+```
+
+
+5. 移除流动性流程
+```mermaid
+sequenceDiagram
+    participant 用户钱包 as 用户钱包
+    participant Router as Uniswap Router
+    participant 交易对 as 代币交易对
+    participant 代币A as 代币A合约
+    participant 代币B as 代币B合约
+    
+    用户钱包->>交易对: 授权Router使用LP代币
+    交易对-->>用户钱包: 授权成功
+    
+    用户钱包->>Router: 调用removeLiquidity(代币A, 代币B, LP数量, 最小数量A, 最小数量B, 用户地址, 截止时间)
+    
+    Router->>Router: 验证交易截止时间未过期
+    
+    Router->>交易对: 转移LP代币从用户到Router
+    
+    Router->>交易对: 调用burn(Router地址)
+    
+    交易对->>交易对: 计算应返还的代币A和代币B数量
+    交易对->>代币A: 转移代币A到Router
+    交易对->>代币B: 转移代币B到Router
+    交易对-->>Router: 返回获得的代币A和代币B数量
+    
+    Router->>代币A: 转移代币A到用户地址
+    Router->>代币B: 转移代币B到用户地址
+    
+    Router-->>用户钱包: 返回获得的代币A和代币B数量
+```
+
+6. 价格查询流程
+```mermaid
+sequenceDiagram
+    participant 用户应用 as 用户应用
+    participant Router as Uniswap Router
+    participant Factory as Uniswap Factory
+    participant 交易对 as 代币交易对
+    
+    用户应用->>Router: 调用getAmountOut(输入数量, 储备量A, 储备量B)
+    Router->>Router: 计算输出金额 = (输入数量 * 997 * 储备量B) / (储备量A * 1000 + 输入数量 * 997)
+    Router-->>用户应用: 返回预期输出金额
+    
+    用户应用->>Router: 调用getAmountIn(输出数量, 储备量A, 储备量B)
+    Router->>Router: 计算输入金额 = (储备量A * 输出数量 * 1000) / ((储备量B - 输出数量) * 997) + 1
+    Router-->>用户应用: 返回所需输入金额
+    
+    用户应用->>Router: 调用getAmountsOut(输入数量, [代币A, 代币B, 代币C])
+    Router->>Factory: 获取交易对地址(代币A, 代币B)
+    Factory-->>Router: 返回交易对A-B地址
+    Router->>交易对: 获取储备量
+    交易对-->>Router: 返回储备量
+    Router->>Router: 计算A到B的输出金额
+    
+    Router->>Factory: 获取交易对地址(代币B, 代币C)
+    Factory-->>Router: 返回交易对B-C地址
+    Router->>交易对: 获取储备量
+    交易对-->>Router: 返回储备量
+    Router->>Router: 计算B到C的输出金额
+    
+    Router-->>用户应用: 返回完整路径上的金额数组
+```
+
+7. 闪电贷流程
+```mermaid
+sequenceDiagram
+    participant 借款人 as 借款人合约
+    participant 交易对 as 代币交易对
+    participant 代币A as 代币A合约
+    participant 代币B as 代币B合约
+    
+    借款人->>交易对: 调用swap(大量代币A, 0, 借款人地址, 回调数据)
+    交易对->>代币A: 转移大量代币A到借款人
+    
+    交易对->>借款人: 调用uniswapV2Call(发送者, 数量A, 数量B, 数据)
+    
+    Note over 借款人: 使用借到的代币执行套利或其他操作
+    借款人->>代币A: 获取利润
+    
+    Note over 借款人: 计算需要返还的代币A数量(含0.3%手续费)
+    借款人->>代币A: 授权交易对使用代币A
+    借款人->>交易对: 返还代币A(原始数量 + 手续费)
+    
+    借款人-->>借款人: 保留套利利润
+```
+
+# 闪电贷
+闪电贷合约，允许您从流动性池中借出大量token，但要求您在同一交易内完成所有操作（借款、使用资金和还款）。如果您按时还款并支付了手续费，交易会成功执行；如果没有还款，整个交易会自动回滚（就像从未发生过一样），但区块仍然会生成，只是包含了一个失败的交易记录。
+
+这种机制依赖于以太坊智能合约的原子性特性，而不是阻止区块生成。
+
+假设您编写了一个闪电贷合约来进行套利：
+
+1. 从Aave借1000 ETH
+2. 用这1000 ETH在Uniswap上买入某代币
+3. 在SushiSwap上卖出这些代币获利
+4. 归还Aave的1000 ETH贷款，外加少量手续费
+5. 保留剩余利润
+如果第3步卖出后，您只获得了990 ETH，不足以归还1000 ETH的贷款，整个交易会自动回滚，就像您从未借过钱、从未交易过一样。您唯一的损失是支付的Gas费用。
+
+这就是为什么闪电贷可以在没有抵押品的情况下安全运作 - 因为贷款平台的资金要么被完全归还，要么交易被完全回滚（资金从未真正离开平台）。
+
+
+
+# 无常损失
+无常损失是流动性提供者（LP）在AMM（自动做市商）系统中可能面临的一种特殊风险。简单来说，它是指：
+
+当你将资产作为流动性提供到Uniswap等AMM平台时，如果这两种资产的相对价格发生变化，你最终取回的资产价值可能会低于你持有这些资产不进行流动性提供的情况。
+
+## 无常损失的最简单理解
+不用数学公式，让我用最简单的逻辑来解释无常损失：
+
+### 最简单的理解
+无常损失就是：当你提供流动性时，如果代币价格变化了，你会比单纯持有这些代币赚得少。
+
+### 为什么会这样？三个关键点：
+1. 自动平衡机制 ：Uniswap等AMM平台会自动保持池子中两种代币的价值比例接近市场价格。
+2. 被迫"逆势交易" ：当一种代币价格上涨时，池子会自动减少这种代币的数量（相当于卖出），增加另一种代币的数量（相当于买入）。这就像你在不断地"卖出上涨的代币，买入下跌的代币"。
+3. 错过单边上涨 ：如果你只是持有代币，当一种代币价格上涨时，你能完全享受这种上涨带来的收益。但作为流动性提供者，你会错过部分上涨收益，因为池子已经自动卖出了一部分上涨的代币。（为了维持流动性交易池的平衡，上涨的代币需要更少的数量就可以维持平衡，所以看到流动性池中，就会出现上涨代币数量变少的情况，数量变少就是卖出，卖出再流动性池中，就会让对应的token价格降低）
+### 生活中的类比
+想象你有100个苹果和100个橙子，每个都值1元钱：
+
+情况1：单纯持有 如果苹果价格涨到2元，而橙子保持1元，你现在有：
+
+- 100个苹果 × 2元 = 200元
+- 100个橙子 × 1元 = 100元
+  总价值：300元
+情况2：提供流动性 当你把苹果和橙子放入自动售货机（类似Uniswap池子）后，机器会自动调整数量以保持总价值平衡。当苹果价格涨到2元时，机器会自动卖出一些苹果，买入更多橙子。最终你可能会得到：
+
+- 71个苹果 × 2元 = 142元
+- 141个橙子 × 1元 = 141元
+  总价值：283元
+无常损失 = 300元 - 283元 = 17元
+
+## 为什么叫"无常"？
+因为这种损失只有在你取出流动性时才会实现。如果价格最终回到原来的水平，这种损失就会消失，就像从未发生过一样。
+
+## 简单记忆
+无常损失 = 错过了单边上涨的全部收益 = 被迫做了"逆势交易"
+
+希望这个解释能帮助您直观理解无常损失的概念，而不需要记忆复杂的数学公式。
+
 
 
 
@@ -629,12 +1056,12 @@ sequenceDiagram
 二、滑点计算示例
 假设一个 ETH/DAI 池：
 
-当前储备：100 ETH + 200,000 DAI
+当前储备：100 ETH ： 200,000 DAI
 （1 ETH = 2,000 DAI）
 k = 100 ETH * 200,000 DAI =200,000,000
 用户想用 10 ETH 买 DAI：
 
-交易后池子变为：110 ETH + (k/110) ≈ 110 ETH + 181,818 DAI
+交易后池子变为：110 ETH ： (k/110) ≈ 110 ETH ： 181,818 DAI
 用户获得：200,000 - 181,818 = 18,182 DAI
 实际价格：18,182 DAI / 10 ETH = 1,818.2 DAI/ETH
 滑点：(2,000 - 1,818.2)/2,000 ≈ 9.09%
@@ -1268,3 +1695,284 @@ sequenceDiagram
 
     Note over Contract: 余额计算示例<br/>初始: 100万 * 1e18 / 1e18 = 100万<br/>一年后: 100万 * 0.99e18 / 1e18 = 99万<br/>两年后: 100万 * 0.98e18 / 1e18 = 98万
 ```
+
+
+# TWAP
+监测meme币价格变化，也包含了2次上架和3个次购买
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant MI as MEME_Inscription合约
+    participant MT as MEME_Token合约
+    participant UV2 as UniswapV2(Router/Factory/Pair)
+    participant TWAP as TWAP_MEME监测合约
+
+    %% 初始化阶段
+    User->>MI: 部署MEME_Inscription合约
+    User->>TWAP: 部署TWAP_MEME合约
+    
+    %% 第一次流动性添加
+    User->>MI: deployInscription("MEME Token", 1000000, 100, 0.0001 ETH)
+    MI->>MT: 部署MEME_Token合约
+    MI-->>User: 返回memeToken地址
+    
+    User->>MI: mintInscription{value: 0.01 ETH}(memeToken)
+    MI->>MT: mint(user, 100 MEME)
+    MT-->>User: 转移100个MEME代币
+    
+    User->>MT: approve(memeInscription, userBalance)
+    User->>MI: addLiquidity{value: 10 ETH}(memeToken, userBalance, 0, 0)
+    MI->>MT: transferFrom(user, MI, tokenAmount)
+    MI->>UV2: addLiquidityETH{value: ETH}(memeToken, tokenAmount, 0, 0)
+    UV2->>UV2: 创建交易对并添加流动性
+    UV2-->>MI: 返回LP代币
+    MI-->>User: 转移LP代币
+    
+    User->>TWAP: initializePair(memeToken)
+    TWAP->>UV2: getPair(memeToken, WETH)
+    UV2-->>TWAP: 返回pair地址
+    TWAP->>UV2: token0()
+    UV2-->>TWAP: 返回token0地址
+    TWAP->>TWAP: 确定memeIsToken0
+    
+    %% 记录初始流动性价格快照
+    User->>TWAP: takeSnapshot("Initial Liquidity")
+    TWAP->>UV2: price0CumulativeLast()
+    TWAP->>UV2: price1CumulativeLast()
+    TWAP->>UV2: getReserves()
+    UV2-->>TWAP: 返回reserves和timestamp
+    TWAP->>TWAP: 存储PriceSnapshot
+    TWAP->>TWAP: getCurrentPrice()
+    TWAP-->>User: 发出SnapshotTaken事件
+    
+    %% 第二次流动性添加
+    User->>MI: mintInscription{value: 0.01 ETH}(memeToken)
+    MI->>MT: mint(user, 100 MEME)
+    MT-->>User: 转移100个MEME代币
+    
+    User->>MT: approve(memeInscription, userBalance)
+    User->>MI: addLiquidity{value: 5 ETH}(memeToken, userBalance, 0, 0)
+    MI->>MT: transferFrom(user, MI, tokenAmount)
+    MI->>UV2: addLiquidityETH{value: ETH}(memeToken, tokenAmount, 0, 0)
+    UV2->>UV2: 添加流动性
+    UV2-->>MI: 返回LP代币
+    MI-->>User: 转移LP代币
+    
+    %% 记录第二次流动性价格快照
+    User->>TWAP: takeSnapshot("Second Liquidity")
+    TWAP->>UV2: price0CumulativeLast()
+    TWAP->>UV2: price1CumulativeLast()
+    TWAP->>UV2: getReserves()
+    UV2-->>TWAP: 返回reserves和timestamp
+    TWAP->>TWAP: 存储PriceSnapshot
+    TWAP->>TWAP: getCurrentPrice()
+    TWAP-->>User: 发出SnapshotTaken事件
+    
+    %% 第一次购买MEME
+    User->>MI: buyMeme{value: 1 ETH}(memeToken, 0)
+    MI->>MI: 计算平台费用(5%)
+    MI->>UV2: swapExactETHForTokensSupportingFeeOnTransferTokens{value: 0.95 ETH}()
+    UV2->>UV2: 执行代币交换
+    UV2->>MT: 转移MEME代币
+    MT-->>User: 接收MEME代币
+    MI-->>User: 转移平台费用(0.05 ETH)给owner
+    
+    %% 记录第一次购买后价格快照
+    User->>TWAP: takeSnapshot("First Buy")
+    TWAP->>UV2: price0CumulativeLast()
+    TWAP->>UV2: price1CumulativeLast()
+    TWAP->>UV2: getReserves()
+    UV2-->>TWAP: 返回reserves和timestamp
+    TWAP->>TWAP: 存储PriceSnapshot
+    TWAP->>TWAP: getCurrentPrice()
+    TWAP-->>User: 发出SnapshotTaken事件
+    
+    %% 第二次购买MEME
+    User->>MI: buyMeme{value: 2 ETH}(memeToken, 0)
+    MI->>MI: 计算平台费用(5%)
+    MI->>UV2: swapExactETHForTokensSupportingFeeOnTransferTokens{value: 1.9 ETH}()
+    UV2->>UV2: 执行代币交换
+    UV2->>MT: 转移MEME代币
+    MT-->>User: 接收MEME代币
+    MI-->>User: 转移平台费用(0.1 ETH)给owner
+    
+    %% 记录第二次购买后价格快照
+    User->>TWAP: takeSnapshot("Second Buy")
+    TWAP->>UV2: price0CumulativeLast()
+    TWAP->>UV2: price1CumulativeLast()
+    TWAP->>UV2: getReserves()
+    UV2-->>TWAP: 返回reserves和timestamp
+    TWAP->>TWAP: 存储PriceSnapshot
+    TWAP->>TWAP: getCurrentPrice()
+    TWAP-->>User: 发出SnapshotTaken事件
+    
+    %% 第三次购买MEME
+    User->>MI: buyMeme{value: 3 ETH}(memeToken, 0)
+    MI->>MI: 计算平台费用(5%)
+    MI->>UV2: swapExactETHForTokensSupportingFeeOnTransferTokens{value: 2.85 ETH}()
+    UV2->>UV2: 执行代币交换
+    UV2->>MT: 转移MEME代币
+    MT-->>User: 接收MEME代币
+    MI-->>User: 转移平台费用(0.15 ETH)给owner
+    
+    %% 记录第三次购买后价格快照
+    User->>TWAP: takeSnapshot("Third Buy")
+    TWAP->>UV2: price0CumulativeLast()
+    TWAP->>UV2: price1CumulativeLast()
+    TWAP->>UV2: getReserves()
+    UV2-->>TWAP: 返回reserves和timestamp
+    TWAP->>TWAP: 存储PriceSnapshot
+    TWAP->>TWAP: getCurrentPrice()
+    TWAP-->>User: 发出SnapshotTaken事件
+    
+    %% 计算TWAP价格
+    User->>TWAP: calculateTWAP(0, 4)
+    TWAP->>TWAP: 计算timeElapsed = endSnapshot.timestamp - startSnapshot.timestamp
+    TWAP->>TWAP: 计算priceCumulativeDelta
+    TWAP->>TWAP: 计算TWAP价格 = (priceCumulativeDelta / timeElapsed) * 1e18 / 2**112
+    TWAP-->>User: 返回TWAP价格
+    
+    %% 汇总价格变化
+    User->>TWAP: summarizePriceChanges()
+    TWAP->>TWAP: 遍历所有快照
+    TWAP->>TWAP: 计算每次价格变化百分比
+    TWAP-->>User: 返回价格变化汇总
+```
+
+
+# 闪电贷套利作业，给AI的要求
+我来拆解工作：
+前置条件和告知情况、以下所有任务种的合约都是在sepolia测试网运行；
+1、新建两个erc20合约，合约创建的目录是：D:\uniswapV2\src\token，两个合约的文件名是ERC20Token1.sol,ERC20Token2.sol,
+两个erc20合约的代币名称分别是： tokenA   tokenB ,两个代币的初始铸造数都为10000个
+需要先部署这两个合约
+2、创建2个完全独立的Uniswap合约系统实例，并创建2个Uniswap V2 流动池（称为 PoolA 和 PoolB），
+PoolA 的交易对设置：TokenA  1000个  TokenB 1000个 ，兑换比例是1：1 
+PoolB 的交易对设置：TokenA  1000个  TokenB 2000个，兑换比例是1：2
+3、需要在 UniswapV2Call中，从PoolA 支付TokenB 收到 TokenA  ,然后使用TokenA  在PoolB 中购买TokenB ,获得TokenB 后，归还借贷的初始TokenB 和手续费，剩下的归自己所有。
+以上套利场景，需要编写合约执行闪电兑换，合约名称为flashSwapArbitrage.sol,目录位置：D:\uniswapV2\src\arbitrage 
+
+
+
+# compund 借贷平台
+## 借款/贷款利率
+![1748786483065](image/DEFI/1748786483065.png)
+## 存款利息
+存款的利息是通过 cToken 来体现的。
+
+• cToken: 是存入资产的凭证,也是生息代币,每一种标的资产都有对应的一种 cToken,比如,ETH 对应
+cETH,USDT 对应 cUSDT, 生息体现为 cToken 与 Token 的兑换比例不断变大。
+• 标的资产(Underlying Token): **借贷资产**, 每种标的资产都有一个抵押因子(Collateral Factor),代表用户
+抵押的资产价值对应可得到的借款的比率
+![1748786632968](image/DEFI/1748786632968.png)
+
+## APR / APY
+- **APR**: Annual Percentage Rate 年化利率(不考虑复利):
+例如:存入 100 USDT,APR 是 5%,那么一年后你将获得 5 USDT 利息, 如果是借款就是付出的利息。
+- **APY**: Annual Percentage Yield 年化收益率 (考虑复利):收益会自动滚入本金继续产生新的收益。
+
+## 借贷协议
+- 借贷协议通常还有两个重要的组成部分:
+
+• **预言机**:把现实世界的信息(资产价格)传递给链上, 借贷协议利用预言机获取资产价格,以便计算抵押品和借款价值
+
+• **清算**: 当抵押品价值接近借出资产价值时,第三方可替借款偿还借款并获得清算奖励(折扣)。
+
+### Compound (v2)预言机方案
+- • 获取 Chainlink price feeds 或其他数据源
+- 获取价值时使用 oracle.getUnderlyingPrice(cToken): 使用 ETH 币本位；
+- Compound 的 Comptroller 是一个统一的风险控制器: 在用户借款、赎回、清算时统计资产价值总额
+![1748787193626](image/DEFI/1748787193626.png)
+
+### 清算(Liquidation) 
+- • 及时清算可保护协议不会因坏账亏损, 确保协议安全,清算可获得奖励,激励自发维护协议安全。
+
+- • 当 Comptroller.getAccountLiquidity() 根据抵押率(collateral factor)计算用户的账户健康度 - liquidity:净可借额度,
+shortfall: 不足额度(> 0 可以被清算)
+
+- • 抵押率(collateral factor):抵押的资产用来借款的比例,例如:抵押率为 75%,抵押了价值 $1000 ,最多可借
+$750, 当借款价值 > $750, 变得不健康,可以被清算
+![1748787809168](image/DEFI/1748787809168.png)
+
+# Compound 协议 - 演进
+## Compound V2:
+• 池化风险, 如果某种资产被恶意操控价格, 可能导致整个池子的资金耗尽。
+
+• 如果用户存入的资产被借走,用户可能需要等待其他用户归还才能提取。
+
+• 借出的资产再次抵押,形成循环杠杆,加大系统风险
+
+• 清算链式反应:若某资产价格剧烈波动,清算可能会引发连锁反应
+## Compound V3(代号“Comet”):使用单一借贷资产模式(瘦身,以提升安全性)
+• 区分**抵押资产**和**基础资产**,**抵押资产不可以借出,也不产生利息**
+
+• 以 USDC 池为例,ETH、WBTC 等资产仅作为抵押资产,仅有 USDC 可以借出,且赚取利息
+
+• 每个基础资产池,有自己的抵押品参数设置
+
+# AAVE v2 - 闪电贷
+在一个交易里,可以先借后还, 借的资金可以在其他协议套利
+
+• 调用 lendingPool.flashLoan 后,会回调用户实现的 executeOperation() , 用户可在 executeOperation 函数中套利
+
+
+# AAVE v3 - 跨链借贷
+
+
+# Morpho:
+- **允许用户创建独立的借贷市场**,（我理解为私人银行）
+- 每个市场由单一抵押资产(如 ETH)和单一借款资产(如 USDC)组成。
+- 降低治理需求,创建市场后,利率模型、预言机等参数便不可修改。
+- 每个借贷市场独立运行,风险不会波及其他市场
+- • 引入 p2p 模式,用户存入或借出资产,会尝试从现有的相反交易方向中“直接撮合”
+
+
+# Vault - ERC4626
+- • DeFi 协议中大量存在“存入资产后获得份额资产”的机制, 存储资产的合约通常也叫 **Vault**
+
+- • ERC4626 是包装和标准化“存入资产 → 获得收益资产”的金库接口, 统一“收益金库”的存取逻辑,提升组合性和可集成性。
+
+- •** ERC4626 继承 ERC20**, 本身也是 Token,Token 作为份额凭证,也是退出的依据
+
+## 代码示例
+interface IERC4626 is IERC20 {
+
+function asset() external view returns (address assetTokenAddress);
+function deposit(uint256 assets, address receiver) external returns (uint256 shares);
+function mint(uint256 shares, address receiver) external returns (uint256 assets);
+function redeem(uint256 shares, address receiver, address owner) external returns (uint256 assets);
+function withdraw(uint256 assets, address receiver, address owner) external returns (uint256 shares);
+
+function totalAssets() external view returns (uint256 totalManagedAssets);
+function convertToShares(uint256 assets) external view returns (uint256 shares);
+function convertToAssets(uint256 shares) external view returns (uint256 assets);
+
+function maxDeposit(address receiver) external view returns (uint256 maxAssets);
+function previewDeposit(uint256 assets) external view returns (uint256 shares);
+function maxMint(address receiver) external view returns (uint256 maxShares);
+function previewMint(uint256 shares) external view returns (uint256 assets);
+function maxWithdraw(address owner) external view returns (uint256 maxAssets);
+function previewWithdraw(uint256 assets) external view returns (uint256 shares);
+function maxRedeem(address owner) external view returns (uint256 maxShares);
+function previewRedeem(uint256 shares) external view returns (uint256 assets);
+}
+
+## 关注 Vault 的通胀攻击
+
+• 在实现 Vault 时,需关注 Vault 在净值极低(或初始阶段)时的逻辑漏洞,通过极小成本铸造大量 shares,稀释其他用户收益,从而获利。
+
+![1748789021306](image/DEFI/1748789021306.png)
+
+
+## 避免通胀攻击的几个方式
+
+- • 设置最小存款(或流动性)门槛(常见做法),使得攻击者的捐赠成本大幅增加。
+
+- • 使用虚拟资产与份额, 模拟金库始终具有一定存款(或流动性)。
+
+- • 内部记账(Internal Accounting)- 忽略“捐赠”资产, 但可能引起其他问题。
+
+- • 设置初始化时的权限,如totalSupply == 0, 只有管理员可操作。
+
+

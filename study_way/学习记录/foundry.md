@@ -351,7 +351,9 @@ test junk” -k <KEYSTORE_DIR> <ACCOUNT_NAME>
 
 在项目根目录下执行，SKEY 是文件名,.keys目录默认创建在项目根目录下
 cast wallet import --mnemonic "test test test test test test test test test test test junk" -k .keys SKEY
-
+下面这个命令没问题：根据提示，输入私钥和密码，即可导入钱包。
+cast wallet import --interactive --keystore-dir .keys fox1
+cast wallet import --interactive --keystore-dir .keys fox2
 ## 使用 cast wallet 账号部署合约
 
 ### 用 keystore 账号部署合约

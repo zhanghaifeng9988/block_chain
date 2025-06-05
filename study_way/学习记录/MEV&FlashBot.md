@@ -428,12 +428,31 @@ https://docs.flashbots.net/flashbots-auction/libraries/bundle-relay
 
 
 
-
+任务：
 使用js，利⽤ flashbot API eth_sendBundle 捆绑 OpenspaceNFT 的开启预售和 presale 交易
+前置情况说明1：
+我已经创建了npm的项目目录，在这里/d/uniswapV2/flashBot，已经安装官网要求，安装好了依赖：
+npm install --save ethers
+npm install --save @flashbots/ethers-provider-bundle
+你可以进去目录扫描一下
+前置情况说明2：
+NFT的合约已经创建，位置：D:\uniswapV2\src\token\OpenspaceNFT.sol，请仔细阅读
+要求1：
+1、本次项目合约都需要部署到sepolia测试网，我已经配置好了环境变量和D:\uniswapV2\foundry.toml文件，部署命令中，可以直接使用sepolia这个变量名字，我拥有sepolia测试网的测试代币，可以用来测试。
+2、本项目的合约部署，都需要使用脚本来部署；
+3、合约部署使用的私钥文件，位置为：D:\uniswapV2\.keys\hf
 
-预售的交易(sepolia 测试⽹络)，并使⽤ flashbots_getBundleStats 查询状态，最终打印交易哈希和 stats 信息
-提交内容：
+要求2：
+- 预售的交易使⽤ flashbots_getBundleStats 查询状态，最终打印交易哈希和 stats 信息
+- 和 flashbot API 交互代码
+- 我需要最终提交到 sepolia 网络的 enablePresale 和 presale 交易哈希
+- flashbot flashbots_getBundleStats 对本次捆绑，返回捆绑状态信息。
 
-和 flashbot API 交互代码
-最终提交到 sepolia 网络的 enablePresale 和 presale 交易哈希
-flashbot flashbots_getBundleStats 对本次捆绑的返回信息。
+你先别着急干活，你先帮我分析这个需求的合理性和可行性
+
+
+
+
+- 先创建合约部署脚本
+- 再实现 Flashbots 捆绑逻辑
+- 最后添加监控和错误处理
